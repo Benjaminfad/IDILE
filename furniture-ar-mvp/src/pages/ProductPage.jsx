@@ -7,7 +7,9 @@ import FurnitureViewer3D from '../components/furniture/FurnitureViewer3D'
 import WhatsAppButton from '../components/furniture/WhatsAppButton'
 import ARViewButton from '../components/furniture/ARViewButton'
 import DimensionsBadge from '../components/ui/DimensionsBadge'
+import useLowBandwidthMode from '../hooks/useLowBandwidthMode'
 import { products } from '../data/products'
+import { formatNaira } from '../utils/formatters'
 
 function ProductPage() {
   const { productId } = useParams()
@@ -22,6 +24,7 @@ function ProductPage() {
     metalness: 0.2,
   })
   const [shareFeedback, setShareFeedback] = useState('')
+  const { lowBandwidthMode } = useLowBandwidthMode()
 
   useEffect(() => {
     const nextDefaultColor = product?.colors?.[0] ?? ''
@@ -51,7 +54,7 @@ function ProductPage() {
     const shareUrl = window.location.href
     const shareData = {
       title: `${product.name} | FurnitureAR NG`,
-      text: `Check out ${product.name} listed at ${product.price}.`,
+      text: `Check out ${product.name} listed at ${formatNaira(product.price)}.`,
       url: shareUrl,
     }
 
@@ -84,6 +87,7 @@ function ProductPage() {
             modelPath={product.modelPath}
             materialColor={selectedColorHex}
             materialProps={materialProps}
+            lowBandwidthMode={lowBandwidthMode}
             className="h-[70vh] min-h-[520px] lg:h-[calc(100vh-8.5rem)]"
           />
         </div>
@@ -98,7 +102,7 @@ function ProductPage() {
               {product.seller}
             </p>
             <p className="mt-2 text-2xl font-bold text-emerald-700">
-              {product.price}
+              {formatNaira(product.price)}
             </p>
             <span className="mt-3 inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
               {product.location}

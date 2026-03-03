@@ -1,12 +1,158 @@
-import { useMemo, useState } from 'react'
+﻿import { useEffect, useMemo, useState } from 'react'
 import FurnitureCard from '../components/furniture/FurnitureCard'
 import { products } from '../data/products'
+import { formatNaira, parsePriceToNumber } from '../utils/formatters'
 
-function parsePriceToNumber(price) {
-  const numeric = String(price ?? '')
-    .replace(/[^\d]/g, '')
-    .trim()
-  return Number(numeric || 0)
+const HOTSPOT_LOCATIONS = [
+  { key: 'Ikeja', matches: ['Ikeja'] },
+  { key: 'VI', matches: ['Victoria Island', 'VI'] },
+  { key: 'Lekki', matches: ['Lekki'] },
+  { key: 'Abuja', matches: ['Abuja', 'Wuse', 'Maitama'] },
+]
+
+function FilterPanel({
+  categories,
+  locations,
+  searchQuery,
+  selectedCategories,
+  selectedLocations,
+  selectedHotspot,
+  priceMin,
+  priceMax,
+  minDatasetPrice,
+  maxDatasetPrice,
+  sortBy,
+  onSearchChange,
+  onToggleCategory,
+  onHotspotSelect,
+  onPriceMinChange,
+  onPriceMaxChange,
+  onToggleLocation,
+  onSortChange,
+  onClearFilters,
+}) {
+  return (
+    <div className="space-y-5">
+      <div className="space-y-2">
+        <label htmlFor="product-search" className="text-sm font-semibold text-slate-800">
+          Search
+        </label>
+        <input
+          id="product-search"
+          type="text"
+          value={searchQuery}
+          onChange={(event) => onSearchChange(event.target.value)}
+          placeholder="Search by name, seller, category"
+          className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none ring-emerald-500 transition focus:ring-2"
+        />
+      </div>
+
+      <div className="space-y-2">
+        <p className="text-sm font-semibold text-slate-800">Popular Areas</p>
+        <div className="flex flex-wrap gap-2">
+          {HOTSPOT_LOCATIONS.map((hotspot) => (
+            <button
+              key={hotspot.key}
+              type="button"
+              onClick={() => onHotspotSelect(hotspot.key)}
+              className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
+                selectedHotspot === hotspot.key
+                  ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
+                  : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-100'
+              }`}
+            >
+              {hotspot.key}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <p className="text-sm font-semibold text-slate-800">Category</p>
+        <div className="space-y-2">
+          {categories.map((category) => (
+            <label key={category} className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={selectedCategories.includes(category)}
+                onChange={() => onToggleCategory(category)}
+                className="accent-emerald-600"
+              />
+              <span className="capitalize text-slate-700">
+                {category.replace('-', ' ')}
+              </span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <p className="text-sm font-semibold text-slate-800">Price Range (\u20A6)</p>
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          <input
+            type="number"
+            value={priceMin}
+            min={minDatasetPrice}
+            max={priceMax}
+            onChange={(event) => onPriceMinChange(Number(event.target.value))}
+            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none ring-emerald-500 transition focus:ring-2"
+          />
+          <input
+            type="number"
+            value={priceMax}
+            min={priceMin}
+            max={maxDatasetPrice}
+            onChange={(event) => onPriceMaxChange(Number(event.target.value))}
+            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none ring-emerald-500 transition focus:ring-2"
+          />
+        </div>
+        <p className="text-xs text-slate-500">
+          {formatNaira(priceMin)} - {formatNaira(priceMax)}
+        </p>
+      </div>
+
+      <div className="space-y-2">
+        <p className="text-sm font-semibold text-slate-800">Location</p>
+        <div className="max-h-44 space-y-2 overflow-y-auto pr-1">
+          {locations.map((location) => (
+            <label key={location} className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={selectedLocations.includes(location)}
+                onChange={() => onToggleLocation(location)}
+                className="accent-emerald-600"
+              />
+              <span className="text-slate-700">{location}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <label htmlFor="sort-by" className="text-sm font-semibold text-slate-800">
+          Sort By
+        </label>
+        <select
+          id="sort-by"
+          value={sortBy}
+          onChange={(event) => onSortChange(event.target.value)}
+          className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none ring-emerald-500 transition focus:ring-2"
+        >
+          <option value="popularity">Popularity</option>
+          <option value="price-asc">Price: Low to High</option>
+          <option value="price-desc">Price: High to Low</option>
+        </select>
+      </div>
+
+      <button
+        type="button"
+        onClick={onClearFilters}
+        className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
+      >
+        Clear Filters
+      </button>
+    </div>
+  )
 }
 
 function CatalogPage() {
@@ -29,16 +175,45 @@ function CatalogPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategories, setSelectedCategories] = useState([])
   const [selectedLocations, setSelectedLocations] = useState([])
+  const [selectedHotspot, setSelectedHotspot] = useState('')
   const [priceMin, setPriceMin] = useState(minDatasetPrice)
   const [priceMax, setPriceMax] = useState(maxDatasetPrice)
   const [sortBy, setSortBy] = useState('popularity')
+  const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false)
 
-  const toggleSelection = (value, selectedValues, setSelectedValues) => {
+  useEffect(() => {
+    if (!isMobileFilterOpen) return undefined
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = previousOverflow
+    }
+  }, [isMobileFilterOpen])
+
+  const toggleSelection = (value, setSelectedValues) => {
     setSelectedValues((current) =>
       current.includes(value)
         ? current.filter((item) => item !== value)
         : [...current, value],
     )
+  }
+
+  const applyHotspot = (hotspotKey) => {
+    if (selectedHotspot === hotspotKey) {
+      setSelectedHotspot('')
+      setSelectedLocations([])
+      return
+    }
+
+    const hotspot = HOTSPOT_LOCATIONS.find((item) => item.key === hotspotKey)
+    const matchedLocations = locations.filter((location) =>
+      hotspot.matches.some((token) =>
+        location.toLowerCase().includes(token.toLowerCase()),
+      ),
+    )
+
+    setSelectedHotspot(hotspotKey)
+    setSelectedLocations(matchedLocations)
   }
 
   const filteredProducts = useMemo(() => {
@@ -97,6 +272,7 @@ function CatalogPage() {
     setSearchQuery('')
     setSelectedCategories([])
     setSelectedLocations([])
+    setSelectedHotspot('')
     setPriceMin(minDatasetPrice)
     setPriceMax(maxDatasetPrice)
     setSortBy('popularity')
@@ -104,125 +280,49 @@ function CatalogPage() {
 
   return (
     <section className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900">Catalog</h1>
-        <p className="text-slate-600">
-          Explore {products.length} furniture items from sellers across Nigeria.
-        </p>
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">Catalog</h1>
+          <p className="text-slate-600">
+            Explore {products.length} furniture items from sellers across Nigeria.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setIsMobileFilterOpen(true)}
+          className="inline-flex items-center rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 lg:hidden"
+        >
+          Filters
+        </button>
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[280px,1fr]">
-        <aside className="space-y-5 rounded-xl border border-slate-200 bg-white p-4 lg:sticky lg:top-24 lg:h-fit">
-          <div className="space-y-2">
-            <label
-              htmlFor="product-search"
-              className="text-sm font-semibold text-slate-800"
-            >
-              Search
-            </label>
-            <input
-              id="product-search"
-              type="text"
-              value={searchQuery}
-              onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder="Search by name, seller, category"
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none ring-emerald-500 transition focus:ring-2"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <p className="text-sm font-semibold text-slate-800">Category</p>
-            <div className="space-y-2">
-              {categories.map((category) => (
-                <label key={category} className="flex items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={selectedCategories.includes(category)}
-                    onChange={() =>
-                      toggleSelection(
-                        category,
-                        selectedCategories,
-                        setSelectedCategories,
-                      )
-                    }
-                    className="accent-emerald-600"
-                  />
-                  <span className="capitalize text-slate-700">
-                    {category.replace('-', ' ')}
-                  </span>
-                </label>
-              ))}
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <p className="text-sm font-semibold text-slate-800">Price Range (\u20A6)</p>
-            <div className="grid grid-cols-2 gap-2">
-              <input
-                type="number"
-                value={priceMin}
-                min={minDatasetPrice}
-                max={priceMax}
-                onChange={(event) => setPriceMin(Number(event.target.value))}
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none ring-emerald-500 transition focus:ring-2"
-              />
-              <input
-                type="number"
-                value={priceMax}
-                min={priceMin}
-                max={maxDatasetPrice}
-                onChange={(event) => setPriceMax(Number(event.target.value))}
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none ring-emerald-500 transition focus:ring-2"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <p className="text-sm font-semibold text-slate-800">Location</p>
-            <div className="max-h-44 space-y-2 overflow-y-auto pr-1">
-              {locations.map((location) => (
-                <label key={location} className="flex items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={selectedLocations.includes(location)}
-                    onChange={() =>
-                      toggleSelection(
-                        location,
-                        selectedLocations,
-                        setSelectedLocations,
-                      )
-                    }
-                    className="accent-emerald-600"
-                  />
-                  <span className="text-slate-700">{location}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <label htmlFor="sort-by" className="text-sm font-semibold text-slate-800">
-              Sort By
-            </label>
-            <select
-              id="sort-by"
-              value={sortBy}
-              onChange={(event) => setSortBy(event.target.value)}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none ring-emerald-500 transition focus:ring-2"
-            >
-              <option value="popularity">Popularity</option>
-              <option value="price-asc">Price: Low to High</option>
-              <option value="price-desc">Price: High to Low</option>
-            </select>
-          </div>
-
-          <button
-            type="button"
-            onClick={clearFilters}
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
-          >
-            Clear Filters
-          </button>
+        <aside className="hidden rounded-xl border border-slate-200 bg-white p-4 lg:sticky lg:top-24 lg:block lg:h-fit">
+          <FilterPanel
+            categories={categories}
+            locations={locations}
+            searchQuery={searchQuery}
+            selectedCategories={selectedCategories}
+            selectedLocations={selectedLocations}
+            selectedHotspot={selectedHotspot}
+            priceMin={priceMin}
+            priceMax={priceMax}
+            minDatasetPrice={minDatasetPrice}
+            maxDatasetPrice={maxDatasetPrice}
+            sortBy={sortBy}
+            onSearchChange={setSearchQuery}
+            onToggleCategory={(value) =>
+              toggleSelection(value, setSelectedCategories)
+            }
+            onHotspotSelect={applyHotspot}
+            onPriceMinChange={setPriceMin}
+            onPriceMaxChange={setPriceMax}
+            onToggleLocation={(value) =>
+              toggleSelection(value, setSelectedLocations)
+            }
+            onSortChange={setSortBy}
+            onClearFilters={clearFilters}
+          />
         </aside>
 
         <div className="space-y-4">
@@ -247,6 +347,49 @@ function CatalogPage() {
           )}
         </div>
       </div>
+
+      {isMobileFilterOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-950/60 lg:hidden">
+          <div className="absolute inset-y-0 right-0 w-full max-w-sm overflow-y-auto bg-white p-4 shadow-2xl">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-lg font-bold text-slate-900">Filters</h2>
+              <button
+                type="button"
+                onClick={() => setIsMobileFilterOpen(false)}
+                className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-semibold text-slate-700 hover:bg-slate-100"
+              >
+                Close
+              </button>
+            </div>
+
+            <FilterPanel
+              categories={categories}
+              locations={locations}
+              searchQuery={searchQuery}
+              selectedCategories={selectedCategories}
+              selectedLocations={selectedLocations}
+              selectedHotspot={selectedHotspot}
+              priceMin={priceMin}
+              priceMax={priceMax}
+              minDatasetPrice={minDatasetPrice}
+              maxDatasetPrice={maxDatasetPrice}
+              sortBy={sortBy}
+              onSearchChange={setSearchQuery}
+              onToggleCategory={(value) =>
+                toggleSelection(value, setSelectedCategories)
+              }
+              onHotspotSelect={applyHotspot}
+              onPriceMinChange={setPriceMin}
+              onPriceMaxChange={setPriceMax}
+              onToggleLocation={(value) =>
+                toggleSelection(value, setSelectedLocations)
+              }
+              onSortChange={setSortBy}
+              onClearFilters={clearFilters}
+            />
+          </div>
+        </div>
+      )}
     </section>
   )
 }
