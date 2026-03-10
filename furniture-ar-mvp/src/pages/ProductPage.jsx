@@ -1,30 +1,48 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import MaterialSwitcher, {
-  resolveColorToHex,
-} from '../components/furniture/MaterialSwitcher'
+import MaterialSwitcher, { resolveColorToHex } from '../components/furniture/MaterialSwitcher'
 import FurnitureViewer3D from '../components/furniture/FurnitureViewer3D'
 import WhatsAppButton from '../components/furniture/WhatsAppButton'
 import ARViewButton from '../components/furniture/ARViewButton'
 import DimensionsBadge from '../components/ui/DimensionsBadge'
+import Loader from '../components/ui/Loader'
 import useLowBandwidthMode from '../hooks/useLowBandwidthMode'
-import { products } from '../data/products'
+import { fetchProductById } from '../services/publicApi'
 import { formatNaira } from '../utils/formatters'
 
 function ProductPage() {
   const { productId } = useParams()
-  const product = products.find((item) => String(item.id) === String(productId))
-  const defaultColor = product?.colors?.[0] ?? ''
-  const [selectedColor, setSelectedColor] = useState(defaultColor)
-  const [selectedColorHex, setSelectedColorHex] = useState(
-    resolveColorToHex(defaultColor),
-  )
-  const [materialProps, setMaterialProps] = useState({
-    roughness: 0.6,
-    metalness: 0.2,
-  })
+  const [product, setProduct] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [selectedColor, setSelectedColor] = useState('')
+  const [selectedColorHex, setSelectedColorHex] = useState(resolveColorToHex(''))
+  const [materialProps, setMaterialProps] = useState({ roughness: 0.6, metalness: 0.2 })
   const [shareFeedback, setShareFeedback] = useState('')
   const { lowBandwidthMode } = useLowBandwidthMode()
+
+  useEffect(() => {
+    let isMounted = true
+    const loadProduct = async () => {
+      try {
+        setLoading(true)
+        setError('')
+        const item = await fetchProductById(productId)
+        if (!isMounted) return
+        setProduct(item)
+      } catch (requestError) {
+        if (!isMounted) return
+        setError(requestError.message || 'Failed to load product')
+      } finally {
+        if (isMounted) setLoading(false)
+      }
+    }
+
+    loadProduct()
+    return () => {
+      isMounted = false
+    }
+  }, [productId])
 
   useEffect(() => {
     const nextDefaultColor = product?.colors?.[0] ?? ''
@@ -33,13 +51,15 @@ function ProductPage() {
     setMaterialProps({ roughness: 0.6, metalness: 0.2 })
   }, [product?.id])
 
-  if (!product) {
+  if (loading) {
+    return <Loader text="Loading product..." />
+  }
+
+  if (error || !product) {
     return (
       <section className="space-y-4">
         <h1 className="text-2xl font-bold text-slate-900">Product Not Found</h1>
-        <p className="text-slate-600">
-          We could not find a product with ID {productId}.
-        </p>
+        <p className="text-slate-600">{error || `We could not find a product with ID ${productId}.`}</p>
         <Link
           to="/catalog"
           className="inline-flex rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
@@ -94,34 +114,24 @@ function ProductPage() {
 
         <aside className="space-y-4 lg:max-h-[calc(100vh-8.5rem)] lg:overflow-y-auto lg:pr-1">
           <div className="rounded-xl border border-slate-200 bg-white p-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-              Seller
-            </p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Seller</p>
             <h1 className="mt-1 text-2xl font-bold text-slate-900">{product.name}</h1>
-            <p className="mt-1 text-sm font-medium text-slate-700">
-              {product.seller}
-            </p>
-            <p className="mt-2 text-2xl font-bold text-emerald-700">
-              {formatNaira(product.price)}
-            </p>
+            <p className="mt-1 text-sm font-medium text-slate-700">{product.seller}</p>
+            <p className="mt-2 text-2xl font-bold text-emerald-700">{formatNaira(product.price)}</p>
             <span className="mt-3 inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
               {product.location}
             </span>
           </div>
 
           <div className="rounded-xl border border-slate-200 bg-white p-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-              Dimensions
-            </p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Dimensions</p>
             <div className="mt-2">
               <DimensionsBadge dimensions={product.dimensions} />
             </div>
           </div>
 
           <div className="rounded-xl border border-slate-200 bg-white p-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-              Materials
-            </p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Materials</p>
             <ul className="mt-2 space-y-2 text-sm text-slate-700">
               {product.materials.map((material) => (
                 <li key={material} className="flex items-start gap-2">
@@ -147,6 +157,7 @@ function ProductPage() {
             <WhatsAppButton
               product={product}
               sellerName={product.seller}
+              sellerPhone={product.sellerPhone}
               className="w-full"
               label="Inquire on WhatsApp"
             />
@@ -154,6 +165,7 @@ function ProductPage() {
               modelPath={product.modelPath}
               productName={product.name}
               thumbnail={product.thumbnail}
+              iosSrc={product.iosSrc}
             />
             <button
               type="button"

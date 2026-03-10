@@ -14,11 +14,19 @@ function ARViewButton({
   const [openViewer, setOpenViewer] = useState(false)
   const [arFeedback, setArFeedback] = useState('')
   const [isModelViewerReady, setIsModelViewerReady] = useState(false)
+  const isIOS = useMemo(() => {
+    const ua = navigator.userAgent.toLowerCase()
+    return /iphone|ipad|ipod/.test(ua)
+  }, [])
 
   const isMobileDevice = useMemo(() => {
     const ua = navigator.userAgent.toLowerCase()
     return /android|iphone|ipad|ipod/.test(ua)
   }, [])
+  const hasIosSrc = Boolean(iosSrc)
+  const arModes = isIOS
+    ? 'quick-look webxr scene-viewer'
+    : 'webxr scene-viewer quick-look'
 
   useEffect(() => {
     let mounted = true
@@ -75,6 +83,13 @@ function ARViewButton({
       return
     }
 
+    if (isIOS && !hasIosSrc) {
+      setArFeedback(
+        'iPhone AR works best with a USDZ file. Add iosSrc on this product for reliable placement.',
+      )
+      return
+    }
+
     try {
       await viewer.activateAR()
       setArFeedback('')
@@ -82,6 +97,23 @@ function ARViewButton({
       setArFeedback('AR launch failed on this device. Use 3D preview instead.')
     }
   }
+
+  useEffect(() => {
+    if (!openViewer || !modelViewerRef.current) return undefined
+
+    const viewer = modelViewerRef.current
+    const onArStatus = (event) => {
+      const status = event.detail?.status
+      if (status === 'failed') {
+        setArFeedback(
+          'AR failed to initialize. Move to a well-lit textured surface and try again.',
+        )
+      }
+    }
+
+    viewer.addEventListener('ar-status', onArStatus)
+    return () => viewer.removeEventListener('ar-status', onArStatus)
+  }, [openViewer])
 
   return (
     <>
@@ -117,8 +149,9 @@ function ARViewButton({
               ios-src={iosSrc}
               poster={thumbnail}
               ar
-              ar-modes="webxr scene-viewer quick-look"
+              ar-modes={arModes}
               ar-placement="floor"
+              ar-scale="fixed"
               camera-controls
               auto-rotate
               shadow-intensity="1"

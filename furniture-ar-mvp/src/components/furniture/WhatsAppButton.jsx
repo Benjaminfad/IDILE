@@ -17,15 +17,23 @@ function WhatsAppButton({
   }
 
   const href = generateWhatsAppLink(normalizedProduct, phone)
+  const isDisabled = !phone
 
   return (
     <a
-      href={href}
-      target="_blank"
-      rel="noreferrer"
-      className={`inline-flex items-center justify-center rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700 ${className}`}
+      href={isDisabled ? '#' : href}
+      target={isDisabled ? undefined : '_blank'}
+      rel={isDisabled ? undefined : 'noreferrer'}
+      onClick={(event) => {
+        if (isDisabled) event.preventDefault()
+      }}
+      className={`inline-flex items-center justify-center rounded-lg px-4 py-2.5 text-sm font-semibold text-white transition ${
+        isDisabled
+          ? 'cursor-not-allowed bg-slate-400'
+          : 'bg-emerald-600 hover:bg-emerald-700'
+      } ${className}`}
     >
-      {label}
+      {isDisabled ? 'Seller contact unavailable' : label}
     </a>
   )
 }

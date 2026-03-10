@@ -1,7 +1,9 @@
-import { useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
 import { Float, OrbitControls } from '@react-three/drei'
 import { Link } from 'react-router-dom'
+import { fetchFeaturedProducts } from '../services/publicApi'
+import { formatNaira } from '../utils/formatters'
 
 const howItWorks = [
   {
@@ -103,6 +105,25 @@ function Hero3DBackground() {
 }
 
 function HomePage() {
+  const [featuredProducts, setFeaturedProducts] = useState([])
+
+  useEffect(() => {
+    let active = true
+    const loadFeatured = async () => {
+      try {
+        const items = await fetchFeaturedProducts(3)
+        if (active) setFeaturedProducts(items)
+      } catch {
+        if (active) setFeaturedProducts([])
+      }
+    }
+
+    loadFeatured()
+    return () => {
+      active = false
+    }
+  }, [])
+
   return (
     <div className="space-y-12">
       <section className="relative isolate overflow-hidden rounded-3xl border border-slate-200">
@@ -171,6 +192,26 @@ function HomePage() {
           ))}
         </div>
       </section>
+
+      {featuredProducts.length > 0 && (
+        <section className="space-y-4">
+          <h2 className="text-2xl font-bold text-slate-900">Featured Products</h2>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            {featuredProducts.map((product) => (
+              <Link
+                key={product.id}
+                to={`/product/${product.id}`}
+                className="rounded-xl border border-slate-200 bg-white p-4 transition hover:-translate-y-0.5 hover:shadow-md"
+              >
+                <p className="text-sm text-slate-500">{product.category.replace('-', ' ')}</p>
+                <h3 className="mt-1 text-lg font-semibold text-slate-900">{product.name}</h3>
+                <p className="mt-1 text-sm text-slate-600">{product.seller}</p>
+                <p className="mt-3 text-lg font-bold text-emerald-700">{formatNaira(product.price)}</p>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       <section className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
