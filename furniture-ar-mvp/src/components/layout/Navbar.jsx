@@ -20,6 +20,16 @@ function SunIcon() {
   )
 }
 
+function StoreIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M3 10h18v10H3z" />
+      <path d="M2 10 4 4h16l2 6" />
+      <path d="M9 14h6" />
+    </svg>
+  )
+}
+
 function NavItems({ navItems, onItemClick }) {
   return (
     <>
@@ -34,7 +44,10 @@ function NavItems({ navItems, onItemClick }) {
                 : 'text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white'
             }
           >
-            {item.label}
+            <span className="inline-flex items-center gap-1.5">
+              {item.label === 'Store' ? <StoreIcon /> : null}
+              <span>{item.label}</span>
+            </span>
           </NavLink>
         </li>
       ))}
@@ -50,15 +63,23 @@ function Navbar() {
   const isDark = themeMode === 'dark'
 
   const storeSlugMatch = location.pathname.match(/^\/store\/([^/]+)/i)
+  const isStoreContext = Boolean(storeSlugMatch?.[1])
+  const isHomeContext = location.pathname === '/'
   const activeStorePath = storeSlugMatch?.[1]
     ? `/store/${decodeURIComponent(storeSlugMatch[1])}`
     : '/'
 
-  const navItems = [
-    { to: '/', label: 'Home' },
-    { to: activeStorePath, label: 'Store' },
-    { to: '/seller', label: 'Seller Dashboard' },
-  ]
+  const navItems = isStoreContext
+    ? [{ to: activeStorePath, label: 'Store' }]
+    : isHomeContext
+      ? [
+          { to: '/', label: 'Home' },
+          { to: '/seller', label: 'Seller Dashboard' },
+        ]
+      : [
+          { to: '/', label: 'Home' },
+          { to: '/seller', label: 'Seller Dashboard' },
+        ]
 
   return (
     <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur dark:border-slate-800 dark:bg-slate-900/95">
