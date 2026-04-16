@@ -4,7 +4,6 @@ import Layout from './components/layout/Layout'
 import Loader from './components/ui/Loader'
 
 const HomePage = lazy(() => import('./pages/HomePage'))
-const CatalogPage = lazy(() => import('./pages/CatalogPage'))
 const ProductPage = lazy(() => import('./pages/ProductPage'))
 const StorefrontPage = lazy(() => import('./pages/StorefrontPage'))
 const StoreProductPage = lazy(() => import('./pages/StoreProductPage'))
@@ -17,7 +16,6 @@ function App() {
         <Routes>
           <Route element={<Layout />}>
             <Route path="/" element={<HomePage />} />
-            <Route path="/catalog" element={<CatalogPage />} />
             <Route path="/product/:productId" element={<ProductPage />} />
             <Route path="/store/:slug" element={<StorefrontPage />} />
             <Route path="/store/:slug/product/:productId" element={<StoreProductPage />} />

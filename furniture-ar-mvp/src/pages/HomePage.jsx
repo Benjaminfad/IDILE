@@ -141,10 +141,10 @@ function HomePage() {
           </p>
           <div className="mt-8 flex flex-wrap items-center gap-3">
             <Link
-              to="/catalog"
+              to="/"
               className="inline-flex rounded-lg bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
             >
-              Browse Catalog
+              Explore Stores
             </Link>
             <span className="rounded-lg border border-slate-300 bg-white/80 px-4 py-3 text-sm text-slate-700">
               20+ products from local sellers
@@ -217,17 +217,17 @@ function HomePage() {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-2xl font-bold text-slate-900">
-              Ready to explore furniture options?
+              Ready to open a seller storefront?
             </h2>
             <p className="mt-2 text-sm text-slate-600">
-              Open the catalog and start viewing products in 3D.
+              Use a seller store link shared with you to view their products in 3D.
             </p>
           </div>
           <Link
-            to="/catalog"
+            to="/"
             className="inline-flex items-center justify-center rounded-lg bg-emerald-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-700"
           >
-            Go to Catalog
+            Back to Home
           </Link>
         </div>
       </section>

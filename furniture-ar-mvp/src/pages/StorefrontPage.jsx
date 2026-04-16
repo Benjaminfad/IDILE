@@ -63,8 +63,8 @@ function StorefrontPage() {
       <section className="space-y-3 rounded-xl border border-red-200 bg-red-50 p-5">
         <h1 className="text-xl font-bold text-red-700">Storefront Not Available</h1>
         <p className="text-sm text-red-600">{error || 'The store is unavailable right now.'}</p>
-        <Link to="/catalog" className="inline-flex rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white">
-          Back to Catalog
+        <Link to="/" className="inline-flex rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white">
+          Back to Home
         </Link>
       </section>
     )

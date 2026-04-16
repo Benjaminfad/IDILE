@@ -1,13 +1,7 @@
 import { useState } from 'react'
-import { NavLink } from 'react-router-dom'
+import { NavLink, useLocation } from 'react-router-dom'
 import useLowBandwidthMode from '../../hooks/useLowBandwidthMode'
 import useThemeMode from '../../hooks/useThemeMode'
-
-const navItems = [
-  { to: '/', label: 'Home' },
-  { to: '/catalog', label: 'Catalog' },
-  { to: '/seller', label: 'Seller Dashboard' },
-]
 
 function MoonIcon() {
   return (
@@ -26,7 +20,7 @@ function SunIcon() {
   )
 }
 
-function NavItems({ onItemClick }) {
+function NavItems({ navItems, onItemClick }) {
   return (
     <>
       {navItems.map((item) => (
@@ -50,9 +44,21 @@ function NavItems({ onItemClick }) {
 
 function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const location = useLocation()
   const { lowBandwidthMode, setLowBandwidthMode } = useLowBandwidthMode()
   const { themeMode, toggleThemeMode } = useThemeMode()
   const isDark = themeMode === 'dark'
+
+  const storeSlugMatch = location.pathname.match(/^\/store\/([^/]+)/i)
+  const activeStorePath = storeSlugMatch?.[1]
+    ? `/store/${decodeURIComponent(storeSlugMatch[1])}`
+    : '/'
+
+  const navItems = [
+    { to: '/', label: 'Home' },
+    { to: activeStorePath, label: 'Store' },
+    { to: '/seller', label: 'Seller Dashboard' },
+  ]
 
   return (
     <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur dark:border-slate-800 dark:bg-slate-900/95">
@@ -66,7 +72,7 @@ function Navbar() {
 
         <div className="hidden items-center gap-4 lg:flex">
           <ul className="flex items-center gap-4 text-sm font-medium">
-            <NavItems />
+            <NavItems navItems={navItems} />
           </ul>
 
           <button
@@ -104,7 +110,7 @@ function Navbar() {
       {mobileMenuOpen && (
         <div className="border-t border-slate-200 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-900 lg:hidden">
           <ul className="space-y-3 text-sm font-medium">
-            <NavItems onItemClick={() => setMobileMenuOpen(false)} />
+            <NavItems navItems={navItems} onItemClick={() => setMobileMenuOpen(false)} />
           </ul>
 
           <div className="mt-4 grid grid-cols-2 gap-2">

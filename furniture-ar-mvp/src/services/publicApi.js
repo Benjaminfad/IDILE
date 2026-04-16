@@ -74,24 +74,6 @@ export function mapStorefrontProduct(product, seller = {}) {
   }
 }
 
-export async function fetchCatalogProducts(params = {}) {
-  const searchParams = new URLSearchParams()
-  Object.entries(params).forEach(([key, value]) => {
-    if (value !== undefined && value !== null && value !== '') {
-      searchParams.set(key, String(value))
-    }
-  })
-
-  const data = await request(`/products?${searchParams.toString()}`)
-  const items = toArray(data?.items).map(mapApiProduct)
-
-  return {
-    items,
-    pagination: data?.pagination || null,
-    filters: data?.filters || null,
-  }
-}
-
 export async function fetchProductById(productId) {
   const data = await request(`/products/${encodeURIComponent(productId)}`)
   return mapApiProduct(data)

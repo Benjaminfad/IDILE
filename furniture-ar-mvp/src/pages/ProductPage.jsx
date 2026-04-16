@@ -68,10 +68,10 @@ function ProductPage() {
         <h1 className="text-2xl font-bold text-slate-900">Product Not Found</h1>
         <p className="text-slate-600">{error || `We could not find a product with ID ${productId}.`}</p>
         <Link
-          to="/catalog"
+          to="/"
           className="inline-flex rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
         >
-          Back to Catalog
+          Back to Home
         </Link>
       </section>
     )
@@ -102,10 +102,10 @@ function ProductPage() {
   return (
     <section className="space-y-4">
       <Link
-        to="/catalog"
+        to="/"
         className="inline-flex w-fit items-center rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-100"
       >
-        Back to Catalog
+        Back to Home
       </Link>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr),380px]">
