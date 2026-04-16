@@ -6,6 +6,8 @@ import Loader from './components/ui/Loader'
 const HomePage = lazy(() => import('./pages/HomePage'))
 const CatalogPage = lazy(() => import('./pages/CatalogPage'))
 const ProductPage = lazy(() => import('./pages/ProductPage'))
+const StorefrontPage = lazy(() => import('./pages/StorefrontPage'))
+const StoreProductPage = lazy(() => import('./pages/StoreProductPage'))
 const SellerDashboard = lazy(() => import('./pages/SellerDashboard'))
 
 function App() {
@@ -17,6 +19,8 @@ function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/catalog" element={<CatalogPage />} />
             <Route path="/product/:productId" element={<ProductPage />} />
+            <Route path="/store/:slug" element={<StorefrontPage />} />
+            <Route path="/store/:slug/product/:productId" element={<StoreProductPage />} />
             <Route path="/seller" element={<SellerDashboard />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>

@@ -121,8 +121,8 @@ furniture-ar-mvp/
 │   │   └── ui/
 │   │       ├── DimensionsBadge.jsx
 │   │       └── Loader.jsx
-│   ├── data/
-│   │   └── products.js
+│   ├── services/
+│   │   └── publicApi.js
 │   ├── hooks/
 │   │   ├── useLowBandwidthMode.js
 │   │   ├── useThemeMode.js
@@ -153,6 +153,14 @@ npm install
 npm run dev
 ```
 
+### 2.1) Set API base URL
+
+Create `.env` from `.env.example`:
+
+```bash
+VITE_API_BASE_URL=https://dev--aagarservice.netlify.app/api
+```
+
 ### 3) Build for production
 
 ```bash
@@ -176,11 +184,17 @@ npm run preview
 
 ---
 
-## Data Model (MVP)
+## Data Flow (MVP)
 
-Products are currently mock/local data in `src/data/products.js`.
+Products now come from backend public endpoints via `src/services/publicApi.js`.
 
-Each product includes fields such as:
+Endpoints in use:
+
+- `GET /products` (catalog list + filters/sort)
+- `GET /products/:id` (single product detail)
+- `GET /products/public` (featured products on home)
+
+Mapped frontend product shape includes fields such as:
 
 - `id`, `name`, `seller`, `sellerPhone`
 - `category`, `price`, `location`
@@ -194,7 +208,8 @@ Each product includes fields such as:
 This is still an active MVP. Planned/next logical upgrades include:
 
 - Better chunk splitting for large 3D bundles
-- Real backend for products, sellers, and leads
+- Public backend is integrated for catalog/product read flows
+- Remaining backend work: richer analytics and additional public endpoints
 - Analytics for product views and WhatsApp click-through
 - True AR asset pipeline (including `usdz` for richer iOS support)
 - Seller dashboard implementation

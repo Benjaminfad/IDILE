@@ -10,7 +10,7 @@ const DEFAULT_FALLBACK_IMAGE_SCALE = 0.6
 const TABLE_FALLBACK_IMAGE_SCALE = 0.6
 const CHAIR_FALLBACK_IMAGE_SCALE = 0.6
 
-function FurnitureCard({ product }) {
+function FurnitureCard({ product, productLink }) {
   const [hasImageError, setHasImageError] = useState(false)
   const [isImageLoaded, setIsImageLoaded] = useState(false)
 
@@ -44,6 +44,8 @@ function FurnitureCard({ product }) {
     if (isChairProduct) return CHAIR_FALLBACK_IMAGE_SCALE
     return DEFAULT_FALLBACK_IMAGE_SCALE
   }, [isTableProduct, isChairProduct])
+
+  const productPath = productLink || `/product/${productId}`
 
   return (
     <article className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
@@ -93,7 +95,7 @@ function FurnitureCard({ product }) {
         </div>
 
         <Link
-          to={`/product/${productId}`}
+          to={productPath}
           className="inline-flex w-full items-center justify-center rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800"
         >
           View in 3D

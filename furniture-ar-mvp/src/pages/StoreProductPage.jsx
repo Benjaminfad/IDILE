@@ -7,18 +7,19 @@ import ARViewButton from '../components/furniture/ARViewButton'
 import DimensionsBadge from '../components/ui/DimensionsBadge'
 import Loader from '../components/ui/Loader'
 import useLowBandwidthMode from '../hooks/useLowBandwidthMode'
-import { fetchProductById, trackProductView } from '../services/publicApi'
+import { fetchStoreProductById, trackProductView } from '../services/publicApi'
 import { formatNaira } from '../utils/formatters'
 
-function ProductPage() {
-  const { productId } = useParams()
+function StoreProductPage() {
+  const { slug = '', productId = '' } = useParams()
   const [product, setProduct] = useState(null)
+  const [storefront, setStorefront] = useState(null)
+  const [seller, setSeller] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [selectedColor, setSelectedColor] = useState('')
   const [selectedColorHex, setSelectedColorHex] = useState(resolveColorToHex(''))
   const [materialProps, setMaterialProps] = useState({ roughness: 0.6, metalness: 0.2 })
-  const [shareFeedback, setShareFeedback] = useState('')
   const trackedProductRef = useRef('')
   const { lowBandwidthMode } = useLowBandwidthMode()
 
@@ -28,9 +29,11 @@ function ProductPage() {
       try {
         setLoading(true)
         setError('')
-        const item = await fetchProductById(productId)
+        const data = await fetchStoreProductById(slug, productId)
         if (!isMounted) return
-        setProduct(item)
+        setProduct(data.product)
+        setStorefront(data.storefront)
+        setSeller(data.seller)
       } catch (requestError) {
         if (!isMounted) return
         setError(requestError.message || 'Failed to load product')
@@ -38,12 +41,11 @@ function ProductPage() {
         if (isMounted) setLoading(false)
       }
     }
-
     loadProduct()
     return () => {
       isMounted = false
     }
-  }, [productId])
+  }, [slug, productId])
 
   useEffect(() => {
     const nextDefaultColor = product?.colors?.[0] ?? ''
@@ -55,57 +57,30 @@ function ProductPage() {
   useEffect(() => {
     if (!product?.id || trackedProductRef.current === product.id) return
     trackedProductRef.current = product.id
-    trackProductView(product.id, 'view', 'catalog-page').catch(() => {})
+    trackProductView(product.id, 'view', 'storefront').catch(() => {})
   }, [product?.id])
 
-  if (loading) {
-    return <Loader text="Loading product..." />
-  }
+  if (loading) return <Loader text="Loading product..." />
 
   if (error || !product) {
     return (
-      <section className="space-y-4">
-        <h1 className="text-2xl font-bold text-slate-900">Product Not Found</h1>
-        <p className="text-slate-600">{error || `We could not find a product with ID ${productId}.`}</p>
-        <Link
-          to="/catalog"
-          className="inline-flex rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
-        >
-          Back to Catalog
+      <section className="space-y-3 rounded-xl border border-red-200 bg-red-50 p-5">
+        <h1 className="text-xl font-bold text-red-700">Product Not Available</h1>
+        <p className="text-sm text-red-600">{error || 'The product is unavailable right now.'}</p>
+        <Link to={`/store/${encodeURIComponent(slug)}`} className="inline-flex rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white">
+          Back to Store
         </Link>
       </section>
     )
   }
 
-  const handleShareProduct = async () => {
-    const shareUrl = window.location.href
-    const shareData = {
-      title: `${product.name} | FurnitureAR NG`,
-      text: `Check out ${product.name} listed at ${formatNaira(product.price)}.`,
-      url: shareUrl,
-    }
-
-    try {
-      if (navigator.share) {
-        await navigator.share(shareData)
-        setShareFeedback('Product link shared.')
-        return
-      }
-
-      await navigator.clipboard.writeText(shareUrl)
-      setShareFeedback('Product link copied to clipboard.')
-    } catch {
-      setShareFeedback('Could not share this product right now.')
-    }
-  }
-
   return (
     <section className="space-y-4">
       <Link
-        to="/catalog"
+        to={`/store/${encodeURIComponent(slug)}`}
         className="inline-flex w-fit items-center rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-100"
       >
-        Back to Catalog
+        Back to {storefront?.displayName || seller?.businessName || 'Store'}
       </Link>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr),380px]">
@@ -123,10 +98,10 @@ function ProductPage() {
           <div className="rounded-xl border border-slate-200 bg-white p-4">
             <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Seller</p>
             <h1 className="mt-1 text-2xl font-bold text-slate-900">{product.name}</h1>
-            <p className="mt-1 text-sm font-medium text-slate-700">{product.seller}</p>
+            <p className="mt-1 text-sm font-medium text-slate-700">{seller?.businessName || product.seller}</p>
             <p className="mt-2 text-2xl font-bold text-emerald-700">{formatNaira(product.price)}</p>
             <span className="mt-3 inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
-              {product.location}
+              {seller?.location || product.location}
             </span>
           </div>
 
@@ -135,18 +110,6 @@ function ProductPage() {
             <div className="mt-2">
               <DimensionsBadge dimensions={product.dimensions} />
             </div>
-          </div>
-
-          <div className="rounded-xl border border-slate-200 bg-white p-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Materials</p>
-            <ul className="mt-2 space-y-2 text-sm text-slate-700">
-              {product.materials.map((material) => (
-                <li key={material} className="flex items-start gap-2">
-                  <span className="mt-1 h-1.5 w-1.5 rounded-full bg-emerald-600" />
-                  <span>{material}</span>
-                </li>
-              ))}
-            </ul>
           </div>
 
           <MaterialSwitcher
@@ -163,8 +126,8 @@ function ProductPage() {
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <WhatsAppButton
               product={product}
-              sellerName={product.seller}
-              sellerPhone={product.sellerPhone}
+              sellerName={seller?.businessName || product.seller}
+              sellerPhone={seller?.phone || product.sellerPhone}
               className="w-full"
               label="Inquire on WhatsApp"
             />
@@ -175,19 +138,11 @@ function ProductPage() {
               thumbnail={product.thumbnail}
               iosSrc={product.iosSrc}
             />
-            <button
-              type="button"
-              onClick={handleShareProduct}
-              className="inline-flex w-full items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
-            >
-              Share Product
-            </button>
           </div>
-          <p className="text-xs text-slate-500">{shareFeedback}</p>
         </aside>
       </div>
     </section>
   )
 }
 
-export default ProductPage
+export default StoreProductPage

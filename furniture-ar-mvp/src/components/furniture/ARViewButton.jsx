@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import '@google/model-viewer/dist/model-viewer.min.js'
+import { trackProductView } from '../../services/publicApi'
 
 function ARViewButton({
+  productId,
   modelPath,
   productName,
   thumbnail,
@@ -92,6 +94,9 @@ function ARViewButton({
 
     try {
       await viewer.activateAR()
+      if (productId) {
+        trackProductView(productId, 'ar-view', 'ar-viewer').catch(() => {})
+      }
       setArFeedback('')
     } catch {
       setArFeedback('AR launch failed on this device. Use 3D preview instead.')

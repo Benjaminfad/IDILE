@@ -52,6 +52,28 @@ export function mapApiProduct(product) {
   }
 }
 
+export function mapStorefrontProduct(product, seller = {}) {
+  return {
+    id: product?._id || product?.id || '',
+    name: product?.name || 'Unnamed Product',
+    seller: seller?.businessName || 'Unknown Seller',
+    sellerPhone: seller?.phone || '',
+    category: product?.category || 'uncategorized',
+    price: Number(product?.price || 0),
+    dimensions: product?.dimensions || { height: '-', width: '-', depth: '-' },
+    materials: toArray(product?.materials),
+    colors: toArray(product?.colors),
+    modelPath: product?.modelPath || '',
+    thumbnail: toArray(product?.images)[0] || product?.thumbnail || '',
+    images: toArray(product?.images),
+    inStock: product?.inStock !== false,
+    location: seller?.location || 'Nigeria',
+    description: product?.description || '',
+    createdAt: product?.createdAt || null,
+    isActive: product?.isActive !== false,
+  }
+}
+
 export async function fetchCatalogProducts(params = {}) {
   const searchParams = new URLSearchParams()
   Object.entries(params).forEach(([key, value]) => {
@@ -75,6 +97,17 @@ export async function fetchProductById(productId) {
   return mapApiProduct(data)
 }
 
+export async function trackProductView(productId, eventType = 'view', source = 'web') {
+  if (!productId) return null
+  return request(`/products/track/${encodeURIComponent(productId)}`, {
+    method: 'POST',
+    body: JSON.stringify({
+      eventType,
+      source,
+    }),
+  })
+}
+
 export async function fetchFeaturedProducts(limit = 10) {
   const data = await request('/products/public')
   const featured = toArray(data).slice(0, limit).map((item) => ({
@@ -90,6 +123,49 @@ export async function fetchFeaturedProducts(limit = 10) {
   }))
 
   return featured
+}
+
+export async function fetchStorefront(slug) {
+  const data = await request(`/store/${encodeURIComponent(slug)}`)
+  return {
+    seller: data?.seller || null,
+    storefront: data?.storefront || null,
+  }
+}
+
+export async function fetchStoreProducts(slug, params = {}) {
+  const searchParams = new URLSearchParams()
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') {
+      searchParams.set(key, String(value))
+    }
+  })
+
+  const qs = searchParams.toString()
+  const data = await request(`/store/${encodeURIComponent(slug)}/products${qs ? `?${qs}` : ''}`)
+
+  const seller = {
+    businessName: data?.storefront?.displayName || '',
+    phone: data?.storefront?.whatsappPhone || '',
+    location: data?.storefront?.location || '',
+  }
+
+  return {
+    storefront: data?.storefront || null,
+    items: toArray(data?.items).map((item) => mapStorefrontProduct(item, seller)),
+    pagination: data?.pagination || null,
+  }
+}
+
+export async function fetchStoreProductById(slug, productId) {
+  const data = await request(
+    `/store/${encodeURIComponent(slug)}/products/${encodeURIComponent(productId)}`,
+  )
+  return {
+    storefront: data?.storefront || null,
+    seller: data?.seller || null,
+    product: mapStorefrontProduct(data?.product || {}, data?.seller || {}),
+  }
 }
 
 export { API_BASE_URL }
