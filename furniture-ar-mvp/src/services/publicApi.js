@@ -126,14 +126,16 @@ export async function fetchStoreProducts(slug, params = {}) {
   const qs = searchParams.toString()
   const data = await request(`/store/${encodeURIComponent(slug)}/products${qs ? `?${qs}` : ''}`)
 
-  const seller = {
+  const seller = data?.seller || {
     businessName: data?.storefront?.displayName || '',
     phone: data?.storefront?.whatsappPhone || '',
-    location: data?.storefront?.location || '',
+    location: '',
+    avatar: data?.storefront?.logoUrl || '',
   }
 
   return {
     storefront: data?.storefront || null,
+    seller,
     items: toArray(data?.items).map((item) => mapStorefrontProduct(item, seller)),
     pagination: data?.pagination || null,
   }

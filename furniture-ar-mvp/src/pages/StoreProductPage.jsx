@@ -113,7 +113,22 @@ function StoreProductPage() {
           <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
             <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Seller</p>
             <h1 className="mt-1 text-2xl font-bold text-slate-900">{product.name}</h1>
-            <p className="mt-1 text-sm font-medium text-slate-700">{seller?.businessName || product.seller}</p>
+            <div className="mt-2 flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border border-slate-200 bg-slate-100">
+                {seller?.avatar || storefront?.logoUrl ? (
+                  <img
+                    src={seller?.avatar || storefront?.logoUrl}
+                    alt={seller?.businessName || product.seller}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <span className="text-xs font-bold text-slate-700">
+                    {(seller?.businessName || product.seller || 'S').charAt(0).toUpperCase()}
+                  </span>
+                )}
+              </div>
+              <p className="text-sm font-medium text-slate-700">{seller?.businessName || product.seller}</p>
+            </div>
             <p className="mt-2 text-2xl font-bold text-emerald-700">{formatNaira(product.price)}</p>
             <div className="mt-3 flex flex-wrap gap-2">
               <span className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">

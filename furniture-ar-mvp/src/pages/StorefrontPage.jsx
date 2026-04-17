@@ -25,7 +25,7 @@ function StorefrontPage() {
         ])
         if (!active) return
         setStorefront(storeInfo.storefront)
-        setSeller(storeInfo.seller)
+        setSeller(storeInfo.seller || storeProducts.seller || null)
         setProducts(storeProducts.items || [])
       } catch (requestError) {
         if (!active) return
@@ -80,14 +80,18 @@ function StorefrontPage() {
           <div className="relative">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/80">Seller Storefront</p>
             <div className="mt-3 flex flex-wrap items-center gap-3">
-              <div className="h-11 w-11 overflow-hidden rounded-full border border-white/30 bg-white/10">
+              <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border border-white/30 bg-white/10">
                 {storefront.logoUrl || seller?.avatar ? (
                   <img
                     src={storefront.logoUrl || seller?.avatar}
                     alt={storefront.displayName || seller?.businessName || slug}
                     className="h-full w-full object-cover"
                   />
-                ) : null}
+                ) : (
+                  <span className="text-sm font-bold text-white/90">
+                    {(storefront.displayName || seller?.businessName || 'S').charAt(0).toUpperCase()}
+                  </span>
+                )}
               </div>
               <h1 className="text-3xl font-extrabold">{storefront.displayName || seller?.businessName || slug}</h1>
             </div>
