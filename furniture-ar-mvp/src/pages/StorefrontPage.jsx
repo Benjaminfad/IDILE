@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import FurnitureCard from '../components/furniture/FurnitureCard'
 import Loader from '../components/ui/Loader'
 import { fetchStoreProducts, fetchStorefront } from '../services/publicApi'
+import useThemeMode from '../hooks/useThemeMode'
 
 function StorefrontPage() {
   const { slug = '' } = useParams()
@@ -12,6 +13,7 @@ function StorefrontPage() {
   const [storefront, setStorefront] = useState(null)
   const [seller, setSeller] = useState(null)
   const [products, setProducts] = useState([])
+  const { themeMode } = useThemeMode()
 
   useEffect(() => {
     let active = true
@@ -56,6 +58,11 @@ function StorefrontPage() {
     }
   }, [storefront])
 
+  const logoByTheme =
+    themeMode === 'dark'
+      ? '/branding/idile-logo-entity-seat-light.svg'
+      : '/branding/idile-logo-entity-seat.svg'
+
   if (loading) return <Loader text="Loading storefront..." />
 
   if (error || !storefront) {
@@ -78,7 +85,14 @@ function StorefrontPage() {
           <div className="absolute -bottom-10 left-16 h-28 w-28 rounded-full bg-black/10 blur-xl" />
 
           <div className="relative">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/80">Seller Storefront</p>
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/80">Seller Storefront</p>
+              <img
+                src="/branding/idile-logo-entity-seat-light.svg"
+                alt="IDILE logo"
+                className="h-10 w-10 rounded-md bg-white/10 p-1 object-contain"
+              />
+            </div>
             <div className="mt-3 flex flex-wrap items-center gap-3">
               <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border border-white/30 bg-white/10">
                 {storefront.logoUrl || seller?.avatar ? (
@@ -88,9 +102,7 @@ function StorefrontPage() {
                     className="h-full w-full object-cover"
                   />
                 ) : (
-                  <span className="text-sm font-bold text-white/90">
-                    {(storefront.displayName || seller?.businessName || 'S').charAt(0).toUpperCase()}
-                  </span>
+                  <img src={logoByTheme} alt="IDILE logo" className="h-8 w-8 object-contain" />
                 )}
               </div>
               <h1 className="text-3xl font-extrabold">{storefront.displayName || seller?.businessName || slug}</h1>

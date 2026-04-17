@@ -7,6 +7,7 @@ import ARViewButton from '../components/furniture/ARViewButton'
 import DimensionsBadge from '../components/ui/DimensionsBadge'
 import Loader from '../components/ui/Loader'
 import useLowBandwidthMode from '../hooks/useLowBandwidthMode'
+import useThemeMode from '../hooks/useThemeMode'
 import { fetchStoreProductById, trackProductView } from '../services/publicApi'
 import { formatNaira } from '../utils/formatters'
 
@@ -22,6 +23,11 @@ function StoreProductPage() {
   const [materialProps, setMaterialProps] = useState({ roughness: 0.6, metalness: 0.2 })
   const trackedProductRef = useRef('')
   const { lowBandwidthMode } = useLowBandwidthMode()
+  const { themeMode } = useThemeMode()
+  const logoByTheme =
+    themeMode === 'dark'
+      ? '/branding/idile-logo-entity-seat-light.svg'
+      : '/branding/idile-logo-entity-seat.svg'
 
   useEffect(() => {
     let isMounted = true
@@ -85,9 +91,14 @@ function StoreProductPage() {
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/80">Now Viewing</p>
         <div className="mt-1 flex flex-wrap items-center justify-between gap-2">
           <p className="text-base font-bold">{storefront?.displayName || seller?.businessName || 'Seller Store'}</p>
-          <span className="rounded-full border border-white/30 bg-white/10 px-3 py-1 text-xs font-semibold">
-            3D Product Preview
-          </span>
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-2.5 py-1">
+            <img
+              src="/branding/idile-logo-entity-seat-light.svg"
+              alt="IDILE logo"
+              className="h-5 w-5 object-contain"
+            />
+            <span className="text-xs font-semibold">3D Product Preview</span>
+          </div>
         </div>
       </div>
 
@@ -122,9 +133,7 @@ function StoreProductPage() {
                     className="h-full w-full object-cover"
                   />
                 ) : (
-                  <span className="text-xs font-bold text-slate-700">
-                    {(seller?.businessName || product.seller || 'S').charAt(0).toUpperCase()}
-                  </span>
+                  <img src={logoByTheme} alt="IDILE logo" className="h-6 w-6 object-contain" />
                 )}
               </div>
               <p className="text-sm font-medium text-slate-700">{seller?.businessName || product.seller}</p>

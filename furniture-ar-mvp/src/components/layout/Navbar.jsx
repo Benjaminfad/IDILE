@@ -86,9 +86,13 @@ function Navbar() {
       <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
         <NavLink
           to="/"
-          className="text-lg font-semibold text-slate-900 dark:text-white"
+          className="inline-flex items-center"
         >
-          FurnitureAR NG
+          <img
+            src={isDark ? '/branding/idile-logo-entity-seat-light.svg' : '/branding/idile-logo-entity-seat.svg'}
+            alt="IDILE"
+            className="h-16 w-16 object-contain"
+          />
         </NavLink>
 
         <div className="hidden items-center gap-4 lg:flex">

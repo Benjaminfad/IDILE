@@ -4,6 +4,7 @@ import { Float, OrbitControls } from '@react-three/drei'
 import { Link } from 'react-router-dom'
 import { fetchFeaturedProducts } from '../services/publicApi'
 import { formatNaira } from '../utils/formatters'
+import SellerContactCardModal from '../components/ui/SellerContactCardModal'
 
 const howItWorks = [
   {
@@ -141,6 +142,7 @@ function StepIcon({ type }) {
 
 function HomePage() {
   const [featuredProducts, setFeaturedProducts] = useState([])
+  const [contactCardOpen, setContactCardOpen] = useState(false)
 
   useEffect(() => {
     let active = true
@@ -261,20 +263,23 @@ function HomePage() {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-2xl font-bold text-slate-900">
-              Ready to open a seller storefront?
+              Sell furniture on IDILE
             </h2>
             <p className="mt-2 text-sm text-slate-600">
-              Use a seller store link shared with you to view their products in 3D.
+              Own a furniture business? Reach out to get your branded storefront, 3D-ready catalog, and WhatsApp lead flow.
             </p>
           </div>
-          <Link
-            to="/"
+          <button
+            type="button"
+            onClick={() => setContactCardOpen(true)}
             className="inline-flex items-center justify-center rounded-lg bg-emerald-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-700"
           >
-            Back to Home
-          </Link>
+            Contact Us to Join
+          </button>
         </div>
       </section>
+
+      <SellerContactCardModal open={contactCardOpen} onClose={() => setContactCardOpen(false)} />
     </div>
   )
 }
