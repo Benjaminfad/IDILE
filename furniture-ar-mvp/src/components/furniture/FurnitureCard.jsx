@@ -48,7 +48,7 @@ function FurnitureCard({ product, productLink }) {
   const productPath = productLink || `/product/${productId}`
 
   return (
-    <article className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+    <article className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg">
       <div className="relative aspect-[4/3] w-full overflow-hidden bg-slate-100">
         <div
           className={`absolute inset-0 bg-gradient-to-br from-slate-200 via-slate-100 to-slate-200 transition-opacity duration-300 ${
@@ -77,7 +77,7 @@ function FurnitureCard({ product, productLink }) {
 
       <div className="space-y-3 p-4">
         <div className="space-y-1">
-          <h3 className="line-clamp-1 text-base font-semibold text-slate-900">
+          <h3 className="line-clamp-1 text-base font-bold text-slate-900 group-hover:text-emerald-700">
             {product?.name ?? 'Untitled Product'}
           </h3>
           <p className="text-lg font-bold text-emerald-700">
@@ -96,7 +96,7 @@ function FurnitureCard({ product, productLink }) {
 
         <Link
           to={productPath}
-          className="inline-flex w-full items-center justify-center rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800"
+          className="inline-flex w-full items-center justify-center rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800"
         >
           View in 3D
         </Link>

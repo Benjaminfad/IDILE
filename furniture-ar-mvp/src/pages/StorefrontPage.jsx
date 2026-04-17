@@ -72,16 +72,39 @@ function StorefrontPage() {
 
   return (
     <section className="space-y-6">
-      <div className="overflow-hidden rounded-2xl border border-slate-200">
-        <div className="p-6 text-white sm:p-8" style={brandStyle}>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/80">Seller Storefront</p>
-          <h1 className="mt-2 text-3xl font-bold">{storefront.displayName || seller?.businessName || slug}</h1>
-          {storefront.tagline ? <p className="mt-2 text-sm text-white/90">{storefront.tagline}</p> : null}
-          {storefront.description ? <p className="mt-4 max-w-3xl text-sm text-white/90">{storefront.description}</p> : null}
+      <div className="overflow-hidden rounded-2xl border border-slate-200 shadow-sm">
+        <div className="relative p-6 text-white sm:p-8" style={brandStyle}>
+          <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-white/10 blur-xl" />
+          <div className="absolute -bottom-10 left-16 h-28 w-28 rounded-full bg-black/10 blur-xl" />
+
+          <div className="relative">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/80">Seller Storefront</p>
+            <div className="mt-3 flex flex-wrap items-center gap-3">
+              <div className="h-11 w-11 overflow-hidden rounded-full border border-white/30 bg-white/10">
+                {storefront.logoUrl || seller?.avatar ? (
+                  <img
+                    src={storefront.logoUrl || seller?.avatar}
+                    alt={storefront.displayName || seller?.businessName || slug}
+                    className="h-full w-full object-cover"
+                  />
+                ) : null}
+              </div>
+              <h1 className="text-3xl font-extrabold">{storefront.displayName || seller?.businessName || slug}</h1>
+            </div>
+
+            {storefront.tagline ? <p className="mt-2 text-sm text-white/90">{storefront.tagline}</p> : null}
+            {storefront.description ? <p className="mt-4 max-w-3xl text-sm text-white/90">{storefront.description}</p> : null}
+
+            <div className="mt-5 flex flex-wrap gap-2">
+              {seller?.location ? <span className="presence-chip">{seller.location}</span> : null}
+              <span className="presence-chip">{products.length} Product{products.length === 1 ? '' : 's'}</span>
+              {storefront.whatsappPhone ? <span className="presence-chip">WhatsApp Ready</span> : null}
+            </div>
+          </div>
         </div>
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-white p-4">
+      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
         <div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr,auto]">
           <input
             type="text"
