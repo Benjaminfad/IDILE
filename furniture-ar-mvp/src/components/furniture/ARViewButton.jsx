@@ -9,10 +9,10 @@ function ARViewButton({
   thumbnail,
   iosSrc = '',
   className = '',
+  variant = 'button',
 }) {
   const modelViewerRef = useRef(null)
   const [isChecking, setIsChecking] = useState(true)
-  const [isWebXRSupported, setIsWebXRSupported] = useState(false)
   const [openViewer, setOpenViewer] = useState(false)
   const [arFeedback, setArFeedback] = useState('')
   const [isModelViewerReady, setIsModelViewerReady] = useState(false)
@@ -21,10 +21,6 @@ function ARViewButton({
     return /iphone|ipad|ipod/.test(ua)
   }, [])
 
-  const isMobileDevice = useMemo(() => {
-    const ua = navigator.userAgent.toLowerCase()
-    return /android|iphone|ipad|ipod/.test(ua)
-  }, [])
   const hasIosSrc = Boolean(iosSrc)
   const arModes = isIOS
     ? 'quick-look webxr scene-viewer'
@@ -36,21 +32,18 @@ function ARViewButton({
     async function checkWebXR() {
       if (!navigator?.xr) {
         if (mounted) {
-          setIsWebXRSupported(false)
           setIsChecking(false)
         }
         return
       }
 
       try {
-        const supported = await navigator.xr.isSessionSupported('immersive-ar')
+        await navigator.xr.isSessionSupported('immersive-ar')
         if (mounted) {
-          setIsWebXRSupported(Boolean(supported))
           setIsChecking(false)
         }
       } catch {
         if (mounted) {
-          setIsWebXRSupported(false)
           setIsChecking(false)
         }
       }
@@ -70,13 +63,6 @@ function ARViewButton({
       mounted = false
     }
   }, [])
-
-  if (!modelPath) {
-    return null
-  }
-
-  const canAttemptAR = isWebXRSupported || isMobileDevice
-  const buttonLabel = canAttemptAR ? 'View in AR' : 'Open 3D Fallback'
 
   const handleActivateAR = async () => {
     const viewer = modelViewerRef.current
@@ -99,7 +85,7 @@ function ARViewButton({
       }
       setArFeedback('')
     } catch {
-      setArFeedback('AR launch failed on this device. Use 3D preview instead.')
+      setArFeedback('AR launch failed on this device. You can still inspect the product in the AR viewer.')
     }
   }
 
@@ -120,6 +106,64 @@ function ARViewButton({
     return () => viewer.removeEventListener('ar-status', onArStatus)
   }, [openViewer])
 
+  if (!modelPath) {
+    return (
+      <div className={`flex h-full items-center justify-center rounded-xl border border-amber-200 bg-amber-50 p-6 text-center ${className}`}>
+        <p className="text-sm font-medium text-amber-700">
+          AR view is not available yet for this product.
+        </p>
+      </div>
+    )
+  }
+
+  const modelViewer = (
+    <model-viewer
+      ref={modelViewerRef}
+      src={modelPath}
+      ios-src={iosSrc}
+      poster={thumbnail}
+      ar
+      ar-modes={arModes}
+      ar-placement="floor"
+      ar-scale="fixed"
+      camera-controls
+      auto-rotate
+      shadow-intensity="1"
+      style={{ width: '100%', height: '100%', backgroundColor: '#e2e8f0' }}
+    />
+  )
+
+  if (variant === 'inline') {
+    return (
+      <div className={`flex h-[420px] flex-col overflow-hidden rounded-xl border border-slate-200 bg-slate-100 ${className}`}>
+        <div className="flex items-center justify-between gap-3 border-b border-slate-200 bg-white px-4 py-3">
+          <div>
+            <p className="text-sm font-semibold text-slate-900">{productName}</p>
+            <p className="text-xs text-slate-500">Primary AR view</p>
+          </div>
+          <button
+            type="button"
+            onClick={handleActivateAR}
+            disabled={isChecking || !isModelViewerReady}
+            className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {isChecking ? 'Checking AR...' : 'Launch AR'}
+          </button>
+        </div>
+
+        <div className="min-h-0 flex-1">
+          {modelViewer}
+        </div>
+
+        {arFeedback ? (
+          <div className="border-t border-slate-200 bg-white px-4 py-3">
+            <p className="text-xs text-slate-500">{arFeedback}</p>
+          </div>
+        ) : null}
+      </div>
+    )
+  }
+
   return (
     <>
       <button
@@ -128,7 +172,7 @@ function ARViewButton({
         disabled={isChecking}
         className={`inline-flex w-full items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60 ${className}`}
       >
-        {isChecking ? 'Checking AR support...' : buttonLabel}
+        {isChecking ? 'Checking AR support...' : 'View in AR'}
       </button>
 
       {openViewer && (
@@ -137,7 +181,7 @@ function ARViewButton({
             <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
               <div>
                 <p className="text-sm font-semibold text-slate-900">{productName}</p>
-                <p className="text-xs text-slate-500">AR + 3D preview mode</p>
+                <p className="text-xs text-slate-500">Primary AR view</p>
               </div>
               <button
                 type="button"
@@ -148,20 +192,9 @@ function ARViewButton({
               </button>
             </div>
 
-            <model-viewer
-              ref={modelViewerRef}
-              src={modelPath}
-              ios-src={iosSrc}
-              poster={thumbnail}
-              ar
-              ar-modes={arModes}
-              ar-placement="floor"
-              ar-scale="fixed"
-              camera-controls
-              auto-rotate
-              shadow-intensity="1"
-              style={{ width: '100%', height: '70vh', backgroundColor: '#e2e8f0' }}
-            />
+            <div style={{ width: '100%', height: '70vh' }}>
+              {modelViewer}
+            </div>
             <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 px-4 py-3">
               <button
                 type="button"
@@ -171,10 +204,9 @@ function ARViewButton({
               >
                 Launch AR
               </button>
-              <p className="text-xs text-slate-500">
-                {arFeedback ||
-                  'If AR is unavailable, keep exploring this model in 3D.'}
-              </p>
+              {arFeedback ? (
+                <p className="text-xs text-slate-500">{arFeedback}</p>
+              ) : null}
             </div>
           </div>
         </div>

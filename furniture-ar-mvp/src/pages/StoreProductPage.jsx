@@ -1,12 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import MaterialSwitcher, { resolveColorToHex } from '../components/furniture/MaterialSwitcher'
-import FurnitureViewer3D from '../components/furniture/FurnitureViewer3D'
-import WhatsAppButton from '../components/furniture/WhatsAppButton'
 import ARViewButton from '../components/furniture/ARViewButton'
+import WhatsAppButton from '../components/furniture/WhatsAppButton'
 import DimensionsBadge from '../components/ui/DimensionsBadge'
 import Loader from '../components/ui/Loader'
-import useLowBandwidthMode from '../hooks/useLowBandwidthMode'
 import useThemeMode from '../hooks/useThemeMode'
 import { fetchStoreProductById, trackProductView } from '../services/publicApi'
 import { formatNaira } from '../utils/formatters'
@@ -18,11 +15,7 @@ function StoreProductPage() {
   const [seller, setSeller] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [selectedColor, setSelectedColor] = useState('')
-  const [selectedColorHex, setSelectedColorHex] = useState(resolveColorToHex(''))
-  const [materialProps, setMaterialProps] = useState({ roughness: 0.6, metalness: 0.2 })
   const trackedProductRef = useRef('')
-  const { lowBandwidthMode } = useLowBandwidthMode()
   const { themeMode } = useThemeMode()
   const logoByTheme =
     themeMode === 'dark'
@@ -52,13 +45,6 @@ function StoreProductPage() {
       isMounted = false
     }
   }, [slug, productId])
-
-  useEffect(() => {
-    const nextDefaultColor = product?.colors?.[0] ?? ''
-    setSelectedColor(nextDefaultColor)
-    setSelectedColorHex(resolveColorToHex(nextDefaultColor))
-    setMaterialProps({ roughness: 0.6, metalness: 0.2 })
-  }, [product?.id])
 
   useEffect(() => {
     if (!product?.id || trackedProductRef.current === product.id) return
@@ -97,7 +83,7 @@ function StoreProductPage() {
               alt="IDILE logo"
               className="h-5 w-5 object-contain"
             />
-            <span className="text-xs font-semibold">3D Product Preview</span>
+            <span className="text-xs font-semibold">AR Product View</span>
           </div>
         </div>
       </div>
@@ -110,20 +96,22 @@ function StoreProductPage() {
       </Link>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr),380px]">
-        <div className="rounded-2xl border border-slate-200 bg-white p-2">
-          <FurnitureViewer3D
+        <div className="rounded-2xl border border-slate-200 bg-white p-2 shadow-sm">
+          <ARViewButton
+            variant="inline"
+            productId={product.id}
             modelPath={product.modelPath}
-            materialColor={selectedColorHex}
-            materialProps={materialProps}
-            lowBandwidthMode={lowBandwidthMode}
+            productName={product.name}
+            thumbnail={product.thumbnail}
+            iosSrc={product.iosSrc}
             className="h-[70vh] min-h-[520px] lg:h-[calc(100vh-8.5rem)]"
           />
         </div>
 
         <aside className="space-y-4 lg:max-h-[calc(100vh-8.5rem)] lg:overflow-y-auto lg:pr-1">
-          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Seller</p>
-            <h1 className="mt-1 text-2xl font-bold text-slate-900">{product.name}</h1>
+            <h1 className="mt-1 text-2xl font-extrabold leading-tight text-slate-900">{product.name}</h1>
             <div className="mt-2 flex items-center gap-2">
               <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border border-slate-200 bg-slate-100">
                 {seller?.avatar || storefront?.logoUrl ? (
@@ -149,39 +137,30 @@ function StoreProductPage() {
             </div>
           </div>
 
-          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Dimensions</p>
             <div className="mt-2">
               <DimensionsBadge dimensions={product.dimensions} />
             </div>
           </div>
 
-          <MaterialSwitcher
-            colors={product.colors}
-            selectedColor={selectedColor}
-            onColorChange={(name, hex) => {
-              setSelectedColor(name)
-              setSelectedColorHex(hex)
-            }}
-            materialProps={materialProps}
-            onMaterialChange={setMaterialProps}
-          />
-
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <WhatsAppButton
-              product={product}
-              sellerName={seller?.businessName || product.seller}
-              sellerPhone={seller?.phone || product.sellerPhone}
-              className="w-full"
-              label="Inquire on WhatsApp"
-            />
-            <ARViewButton
-              productId={product.id}
-              modelPath={product.modelPath}
-              productName={product.name}
-              thumbnail={product.thumbnail}
-              iosSrc={product.iosSrc}
-            />
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div className="grid grid-cols-1 gap-3">
+              <WhatsAppButton
+                product={product}
+                sellerName={seller?.businessName || product.seller}
+                sellerPhone={seller?.phone || product.sellerPhone}
+                className="w-full"
+                label="Inquire on WhatsApp"
+              />
+              <button
+                type="button"
+                disabled
+                className="inline-flex w-full cursor-not-allowed items-center justify-center rounded-xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-400"
+              >
+                Customize coming soon
+              </button>
+            </div>
           </div>
         </aside>
       </div>

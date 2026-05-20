@@ -27,10 +27,10 @@ function WhatsAppButton({
       onClick={(event) => {
         if (isDisabled) event.preventDefault()
       }}
-      className={`inline-flex items-center justify-center rounded-lg px-4 py-2.5 text-sm font-semibold text-white transition ${
+      className={`inline-flex items-center justify-center rounded-xl px-4 py-3 text-sm font-semibold text-white shadow-sm transition focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 ${
         isDisabled
-          ? 'cursor-not-allowed bg-slate-400'
-          : 'bg-emerald-600 hover:bg-emerald-700'
+          ? 'cursor-not-allowed bg-slate-400 shadow-none'
+          : 'bg-emerald-600 shadow-emerald-900/10 hover:-translate-y-0.5 hover:bg-emerald-700 hover:shadow-md'
       } ${className}`}
     >
       {isDisabled ? 'Seller contact unavailable' : label}
