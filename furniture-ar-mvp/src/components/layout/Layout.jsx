@@ -4,7 +4,7 @@ import Navbar from './Navbar'
 
 function Layout() {
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
       <Navbar />
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8">
         <Outlet />

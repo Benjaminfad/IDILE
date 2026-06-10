@@ -1,47 +1,63 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import MaterialSwitcher, {
-  resolveColorToHex,
-} from '../components/furniture/MaterialSwitcher'
-import FurnitureViewer3D from '../components/furniture/FurnitureViewer3D'
+import ProductMediaTabs from '../components/furniture/ProductMediaTabs'
 import WhatsAppButton from '../components/furniture/WhatsAppButton'
-import ARViewButton from '../components/furniture/ARViewButton'
 import DimensionsBadge from '../components/ui/DimensionsBadge'
-import { products } from '../data/products'
+import Loader from '../components/ui/Loader'
+import { fetchProductById, trackProductView } from '../services/publicApi'
+import { formatNaira } from '../utils/formatters'
 
 function ProductPage() {
   const { productId } = useParams()
-  const product = products.find((item) => String(item.id) === String(productId))
-  const defaultColor = product?.colors?.[0] ?? ''
-  const [selectedColor, setSelectedColor] = useState(defaultColor)
-  const [selectedColorHex, setSelectedColorHex] = useState(
-    resolveColorToHex(defaultColor),
-  )
-  const [materialProps, setMaterialProps] = useState({
-    roughness: 0.6,
-    metalness: 0.2,
-  })
+  const [product, setProduct] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
   const [shareFeedback, setShareFeedback] = useState('')
+  const trackedProductRef = useRef('')
 
   useEffect(() => {
-    const nextDefaultColor = product?.colors?.[0] ?? ''
-    setSelectedColor(nextDefaultColor)
-    setSelectedColorHex(resolveColorToHex(nextDefaultColor))
-    setMaterialProps({ roughness: 0.6, metalness: 0.2 })
+    let isMounted = true
+    const loadProduct = async () => {
+      try {
+        setLoading(true)
+        setError('')
+        const item = await fetchProductById(productId)
+        if (!isMounted) return
+        setProduct(item)
+      } catch (requestError) {
+        if (!isMounted) return
+        setError(requestError.message || 'Failed to load product')
+      } finally {
+        if (isMounted) setLoading(false)
+      }
+    }
+
+    loadProduct()
+    return () => {
+      isMounted = false
+    }
+  }, [productId])
+
+  useEffect(() => {
+    if (!product?.id || trackedProductRef.current === product.id) return
+    trackedProductRef.current = product.id
+    trackProductView(product.id, 'view', 'catalog-page').catch(() => {})
   }, [product?.id])
 
-  if (!product) {
+  if (loading) {
+    return <Loader text="Loading product..." />
+  }
+
+  if (error || !product) {
     return (
       <section className="space-y-4">
         <h1 className="text-2xl font-bold text-slate-900">Product Not Found</h1>
-        <p className="text-slate-600">
-          We could not find a product with ID {productId}.
-        </p>
+        <p className="text-slate-600">{error || `We could not find a product with ID ${productId}.`}</p>
         <Link
-          to="/catalog"
+          to="/"
           className="inline-flex rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
         >
-          Back to Catalog
+          Back to Home
         </Link>
       </section>
     )
@@ -51,7 +67,7 @@ function ProductPage() {
     const shareUrl = window.location.href
     const shareData = {
       title: `${product.name} | FurnitureAR NG`,
-      text: `Check out ${product.name} listed at ${product.price}.`,
+      text: `Check out ${product.name} listed at ${formatNaira(product.price)}.`,
       url: shareUrl,
     }
 
@@ -72,52 +88,37 @@ function ProductPage() {
   return (
     <section className="space-y-4">
       <Link
-        to="/catalog"
+        to="/"
         className="inline-flex w-fit items-center rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-100"
       >
-        Back to Catalog
+        Back to Home
       </Link>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr),380px]">
-        <div className="rounded-2xl border border-slate-200 bg-white p-2">
-          <FurnitureViewer3D
-            modelPath={product.modelPath}
-            materialColor={selectedColorHex}
-            materialProps={materialProps}
-            className="h-[70vh] min-h-[520px] lg:h-[calc(100vh-8.5rem)]"
-          />
+        <div className="rounded-2xl border border-slate-200 bg-white p-2 shadow-sm">
+          <ProductMediaTabs product={product} />
         </div>
 
         <aside className="space-y-4 lg:max-h-[calc(100vh-8.5rem)] lg:overflow-y-auto lg:pr-1">
-          <div className="rounded-xl border border-slate-200 bg-white p-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-              Seller
-            </p>
-            <h1 className="mt-1 text-2xl font-bold text-slate-900">{product.name}</h1>
-            <p className="mt-1 text-sm font-medium text-slate-700">
-              {product.seller}
-            </p>
-            <p className="mt-2 text-2xl font-bold text-emerald-700">
-              {product.price}
-            </p>
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Seller</p>
+            <h1 className="mt-1 text-2xl font-extrabold leading-tight text-slate-900">{product.name}</h1>
+            <p className="mt-1 text-sm font-medium text-slate-700">{product.seller}</p>
+            <p className="mt-2 text-2xl font-bold text-emerald-700">{formatNaira(product.price)}</p>
             <span className="mt-3 inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
               {product.location}
             </span>
           </div>
 
-          <div className="rounded-xl border border-slate-200 bg-white p-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-              Dimensions
-            </p>
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Dimensions</p>
             <div className="mt-2">
               <DimensionsBadge dimensions={product.dimensions} />
             </div>
           </div>
 
-          <div className="rounded-xl border border-slate-200 bg-white p-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-              Materials
-            </p>
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Materials</p>
             <ul className="mt-2 space-y-2 text-sm text-slate-700">
               {product.materials.map((material) => (
                 <li key={material} className="flex items-start gap-2">
@@ -128,36 +129,30 @@ function ProductPage() {
             </ul>
           </div>
 
-          <MaterialSwitcher
-            colors={product.colors}
-            selectedColor={selectedColor}
-            onColorChange={(name, hex) => {
-              setSelectedColor(name)
-              setSelectedColorHex(hex)
-            }}
-            materialProps={materialProps}
-            onMaterialChange={setMaterialProps}
-          />
-
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <WhatsAppButton
-              product={product}
-              sellerName={product.seller}
-              className="w-full"
-              label="Inquire on WhatsApp"
-            />
-            <ARViewButton
-              modelPath={product.modelPath}
-              productName={product.name}
-              thumbnail={product.thumbnail}
-            />
-            <button
-              type="button"
-              onClick={handleShareProduct}
-              className="inline-flex w-full items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
-            >
-              Share Product
-            </button>
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div className="grid grid-cols-1 gap-3">
+              <WhatsAppButton
+                product={product}
+                sellerName={product.seller}
+                sellerPhone={product.sellerPhone}
+                className="w-full"
+                label="Inquire on WhatsApp"
+              />
+              <button
+                type="button"
+                disabled
+                className="inline-flex w-full cursor-not-allowed items-center justify-center rounded-xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-400"
+              >
+                Customize coming soon
+              </button>
+              <button
+                type="button"
+                onClick={handleShareProduct}
+                className="inline-flex w-full items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-slate-50"
+              >
+                Share Product
+              </button>
+            </div>
           </div>
           <p className="text-xs text-slate-500">{shareFeedback}</p>
         </aside>
