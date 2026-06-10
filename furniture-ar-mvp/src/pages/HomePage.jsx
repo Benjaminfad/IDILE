@@ -14,9 +14,9 @@ const howItWorks = [
     icon: 'search',
   },
   {
-    title: 'Preview in 3D/AR',
+    title: 'Preview photos or 3D',
     description:
-      'Rotate, zoom, and customize materials before making a buying decision.',
+      'Review product photos first, then open 3D/AR when a seller has it enabled.',
     icon: 'cube',
   },
   {
@@ -46,7 +46,7 @@ const featuredCategories = [
 ]
 
 const presenceStats = [
-  { label: '3D-ready products', value: '20+' },
+  { label: 'Photo-first listings', value: '20+' },
   { label: 'Local sellers', value: '12+' },
   { label: 'WhatsApp inquiries', value: '< 1 min' },
 ]
@@ -174,7 +174,7 @@ function HomePage() {
               Feel each furniture piece before buying.
             </h1>
             <p className="mt-4 max-w-2xl text-base text-slate-700 sm:text-lg">
-              Discover seller storefronts, inspect products in 3D/AR, and chat instantly on WhatsApp.
+              Discover seller storefronts, inspect furniture photos, open 3D/AR where available, and chat instantly on WhatsApp.
               Built for Nigerian buyers who want confidence before payment.
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-3">
@@ -251,7 +251,9 @@ function HomePage() {
                 <p className="mt-1 text-sm text-slate-600">{product.seller}</p>
                 <div className="mt-3 flex items-end justify-between">
                   <p className="text-lg font-bold text-emerald-700">{formatNaira(product.price)}</p>
-                  <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">3D View</span>
+                  <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+                    {product.has3DDisplay ? 'Photos + 3D' : 'Photos'}
+                  </span>
                 </div>
               </Link>
             ))}
@@ -266,7 +268,7 @@ function HomePage() {
               Sell furniture on IDILE
             </h2>
             <p className="mt-2 text-sm text-slate-600">
-              Own a furniture business? Reach out to get your branded storefront, 3D-ready catalog, and WhatsApp lead flow.
+              Own a furniture business? Reach out to get your branded storefront, photo catalog, optional 3D upgrade, and WhatsApp lead flow.
             </p>
           </div>
           <button
