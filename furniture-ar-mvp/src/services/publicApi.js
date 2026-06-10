@@ -4,6 +4,12 @@ function toArray(value) {
   return Array.isArray(value) ? value : []
 }
 
+function normalizeImages(product) {
+  const images = toArray(product?.images).filter(Boolean).slice(0, 4)
+  if (images.length > 0) return images
+  return product?.thumbnail ? [product.thumbnail] : []
+}
+
 function unwrapResponse(payload) {
   if (payload && typeof payload === 'object' && 'data' in payload) {
     return payload.data
@@ -31,6 +37,7 @@ async function request(path, options = {}) {
 
 export function mapApiProduct(product) {
   const vendor = product?.vendorId || {}
+  const images = normalizeImages(product)
   return {
     id: product?._id || product?.id || '',
     name: product?.name || 'Unnamed Product',
@@ -42,8 +49,11 @@ export function mapApiProduct(product) {
     materials: toArray(product?.materials),
     colors: toArray(product?.colors),
     modelPath: product?.modelPath || '',
-    thumbnail: toArray(product?.images)[0] || product?.thumbnail || '',
-    images: toArray(product?.images),
+    modelAsset: product?.modelAsset || null,
+    threeDEnabled: Boolean(product?.threeDEnabled),
+    has3DDisplay: Boolean(product?.has3DDisplay),
+    thumbnail: images[0] || '',
+    images,
     inStock: product?.inStock !== false,
     location: vendor?.location || 'Nigeria',
     description: product?.description || '',
@@ -53,6 +63,7 @@ export function mapApiProduct(product) {
 }
 
 export function mapStorefrontProduct(product, seller = {}) {
+  const images = normalizeImages(product)
   return {
     id: product?._id || product?.id || '',
     name: product?.name || 'Unnamed Product',
@@ -64,8 +75,11 @@ export function mapStorefrontProduct(product, seller = {}) {
     materials: toArray(product?.materials),
     colors: toArray(product?.colors),
     modelPath: product?.modelPath || '',
-    thumbnail: toArray(product?.images)[0] || product?.thumbnail || '',
-    images: toArray(product?.images),
+    modelAsset: product?.modelAsset || null,
+    threeDEnabled: Boolean(product?.threeDEnabled),
+    has3DDisplay: Boolean(product?.has3DDisplay),
+    thumbnail: images[0] || '',
+    images,
     inStock: product?.inStock !== false,
     location: seller?.location || 'Nigeria',
     description: product?.description || '',
@@ -99,6 +113,9 @@ export async function fetchFeaturedProducts(limit = 10) {
     category: item?.category || 'uncategorized',
     thumbnail: item?.thumbnail || '',
     modelPath: item?.modelPath || '',
+    modelAsset: item?.modelAsset || null,
+    threeDEnabled: Boolean(item?.threeDEnabled),
+    has3DDisplay: Boolean(item?.has3DDisplay),
     seller: item?.vendor?.businessName || 'Unknown Seller',
     sellerPhone: item?.vendor?.phone || '',
     location: item?.vendor?.location || 'Nigeria',

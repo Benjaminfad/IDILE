@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import ARViewButton from '../components/furniture/ARViewButton'
+import ProductMediaTabs from '../components/furniture/ProductMediaTabs'
 import WhatsAppButton from '../components/furniture/WhatsAppButton'
 import DimensionsBadge from '../components/ui/DimensionsBadge'
 import Loader from '../components/ui/Loader'
@@ -96,15 +96,7 @@ function ProductPage() {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr),380px]">
         <div className="rounded-2xl border border-slate-200 bg-white p-2 shadow-sm">
-          <ARViewButton
-            variant="inline"
-            productId={product.id}
-            modelPath={product.modelPath}
-            productName={product.name}
-            thumbnail={product.thumbnail}
-            iosSrc={product.iosSrc}
-            className="h-[70vh] min-h-[520px] lg:h-[calc(100vh-8.5rem)]"
-          />
+          <ProductMediaTabs product={product} />
         </div>
 
         <aside className="space-y-4 lg:max-h-[calc(100vh-8.5rem)] lg:overflow-y-auto lg:pr-1">
