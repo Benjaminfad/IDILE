@@ -3,8 +3,6 @@ import { Link } from 'react-router-dom'
 import {
   formatProductPrice,
   getAvailabilityLabel,
-  getDimensionNote,
-  getMaterialNote,
 } from '../../utils/productDisplay'
 
 const FALLBACK_THUMBNAIL =
@@ -52,8 +50,6 @@ function FurnitureCard({ product, productLink }) {
 
   const productPath = productLink || `/product/${productId}`
   const has3DDisplay = Boolean(product?.has3DDisplay)
-  const hasCustomDimensions = product?.dimensionMode === 'custom'
-  const hasCustomMaterials = product?.materialMode === 'custom'
 
   return (
     <article className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg">
@@ -114,29 +110,7 @@ function FurnitureCard({ product, productLink }) {
           <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">
             {getAvailabilityLabel(product)}
           </span>
-          {hasCustomDimensions ? (
-            <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">
-              Dimensions confirmed before production
-            </span>
-          ) : null}
-          {hasCustomMaterials ? (
-            <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">
-              Materials by specification
-            </span>
-          ) : null}
         </div>
-
-        {hasCustomDimensions ? (
-          <p className="line-clamp-2 text-xs leading-relaxed text-slate-500">
-            {getDimensionNote(product)}
-          </p>
-        ) : null}
-
-        {hasCustomMaterials ? (
-          <p className="line-clamp-2 text-xs leading-relaxed text-slate-500">
-            {getMaterialNote(product)}
-          </p>
-        ) : null}
 
         <Link
           to={productPath}
