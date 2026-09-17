@@ -229,6 +229,13 @@ function ProductDetailView({
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Description</p>
+            <p className="mt-2 text-sm leading-relaxed text-slate-700">
+              {product.description || 'No description provided for this product.'}
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Dimensions</p>
             <div className="mt-2">
               <DimensionsBadge dimensions={product.dimensions} product={product} />
