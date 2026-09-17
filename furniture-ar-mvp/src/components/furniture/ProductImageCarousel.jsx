@@ -36,11 +36,20 @@ function ProductImageCarousel({
         <p className="text-sm font-semibold text-slate-900">{productName}</p>
       </div>
 
-      <div className="relative min-h-0 flex-1 bg-slate-200">
+      <div className="relative min-h-0 flex-1 overflow-hidden bg-slate-950">
+        <img
+          src={activeImage}
+          alt=""
+          className="absolute inset-0 h-full w-full scale-110 object-cover opacity-45 blur-2xl"
+          loading="eager"
+          decoding="async"
+          aria-hidden="true"
+        />
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-950/45 via-slate-900/18 to-slate-950/45" />
         <img
           src={activeImage}
           alt={`${productName} photo ${activeIndex + 1}`}
-          className="h-full w-full object-contain"
+          className="relative z-10 h-full w-full object-contain"
           loading="eager"
           decoding="async"
         />
@@ -50,7 +59,7 @@ function ProductImageCarousel({
             <button
               type="button"
               onClick={showPrevious}
-              className="absolute left-3 top-1/2 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-lg font-bold text-slate-800 shadow transition hover:bg-white"
+              className="absolute left-3 top-1/2 z-20 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-lg font-bold text-slate-800 shadow transition hover:bg-white"
               aria-label="Previous photo"
             >
               {'<'}
@@ -58,7 +67,7 @@ function ProductImageCarousel({
             <button
               type="button"
               onClick={showNext}
-              className="absolute right-3 top-1/2 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-lg font-bold text-slate-800 shadow transition hover:bg-white"
+              className="absolute right-3 top-1/2 z-20 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-lg font-bold text-slate-800 shadow transition hover:bg-white"
               aria-label="Next photo"
             >
               {'>'}
