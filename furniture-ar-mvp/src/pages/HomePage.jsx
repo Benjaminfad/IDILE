@@ -122,7 +122,7 @@ function HomePage() {
 
   return (
     <div className="space-y-12">
-      <section className="relative left-1/2 isolate w-screen -translate-x-1/2 overflow-hidden bg-slate-950 text-white shadow-sm">
+      <section className="relative left-1/2 isolate w-[100dvw] max-w-[100dvw] -translate-x-1/2 overflow-hidden bg-slate-950 text-white shadow-sm">
         <div className="absolute inset-0">
           {heroSlides.map((slide, index) => (
             <img
