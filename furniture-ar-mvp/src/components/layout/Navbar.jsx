@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
-import useLowBandwidthMode from '../../hooks/useLowBandwidthMode'
 import useThemeMode from '../../hooks/useThemeMode'
 
 function MoonIcon() {
@@ -77,28 +76,18 @@ function NavItems({ navItems, onItemClick }) {
 function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const location = useLocation()
-  const { lowBandwidthMode, setLowBandwidthMode } = useLowBandwidthMode()
   const { themeMode, toggleThemeMode } = useThemeMode()
   const isDark = themeMode === 'dark'
 
   const storeSlugMatch = location.pathname.match(/^\/store\/([^/]+)/i)
   const isStoreContext = Boolean(storeSlugMatch?.[1])
-  const isHomeContext = location.pathname === '/'
   const activeStorePath = storeSlugMatch?.[1]
     ? `/store/${decodeURIComponent(storeSlugMatch[1])}`
     : '/'
 
   const navItems = isStoreContext
     ? [{ to: activeStorePath, label: 'Store' }]
-    : isHomeContext
-      ? [
-          { to: '/', label: 'Home' },
-          { to: '/seller', label: 'Seller Dashboard' },
-        ]
-      : [
-          { to: '/', label: 'Home' },
-          { to: '/seller', label: 'Seller Dashboard' },
-        ]
+    : [{ to: '/', label: 'Home' }]
 
   return (
     <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur dark:border-slate-800 dark:bg-slate-900/95">
@@ -122,23 +111,10 @@ function Navbar() {
           <button
             type="button"
             onClick={toggleThemeMode}
-            className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+            className="inline-flex h-9 w-9 items-center justify-center text-slate-700 transition hover:text-emerald-700 dark:text-slate-200 dark:hover:text-emerald-300"
             aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
           >
             {isDark ? <SunIcon /> : <MoonIcon />}
-            {isDark ? 'Light' : 'Dark'}
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setLowBandwidthMode(!lowBandwidthMode)}
-            className={`rounded-lg border px-3 py-2 text-xs font-semibold transition ${
-              lowBandwidthMode
-                ? 'border-emerald-500 bg-emerald-50 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300'
-                : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700'
-            }`}
-          >
-            {lowBandwidthMode ? 'Low Data: On' : 'Low Data: Off'}
           </button>
         </div>
 
@@ -159,26 +135,14 @@ function Navbar() {
             <NavItems navItems={navItems} onItemClick={() => setMobileMenuOpen(false)} />
           </ul>
 
-          <div className="mt-4 grid grid-cols-2 gap-2">
+          <div className="mt-4 flex">
             <button
               type="button"
               onClick={toggleThemeMode}
-              className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+              className="inline-flex h-10 w-10 items-center justify-center text-slate-700 transition hover:text-emerald-700 dark:text-slate-200 dark:hover:text-emerald-300"
               aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
             >
               {isDark ? <SunIcon /> : <MoonIcon />}
-              {isDark ? 'Light' : 'Dark'}
-            </button>
-            <button
-              type="button"
-              onClick={() => setLowBandwidthMode(!lowBandwidthMode)}
-              className={`rounded-lg border px-3 py-2 text-xs font-semibold transition ${
-                lowBandwidthMode
-                  ? 'border-emerald-500 bg-emerald-50 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300'
-                  : 'border-slate-300 bg-white text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200'
-              }`}
-            >
-              {lowBandwidthMode ? 'Low Data On' : 'Low Data Off'}
             </button>
           </div>
         </div>

@@ -51,9 +51,9 @@ export default function SellerContactCardModal({ open, onClose }) {
   const [flipped, setFlipped] = useState(false)
   const [logoBroken, setLogoBroken] = useState(false)
 
-  const whatsappNumber = import.meta.env.VITE_CONTACT_WHATSAPP || '2348012345678'
-  const contactEmail = import.meta.env.VITE_CONTACT_EMAIL || 'hello@idile.ng'
-  const contactPhone = import.meta.env.VITE_CONTACT_PHONE || '+234 801 234 5678'
+  const whatsappNumber = import.meta.env.VITE_CONTACT_WHATSAPP || '2347067066224'
+  const contactEmail = import.meta.env.VITE_CONTACT_EMAIL || 'agaarreachout@gmail.com'
+  const contactPhone = import.meta.env.VITE_CONTACT_PHONE || '07067066224'
   const instagram = import.meta.env.VITE_CONTACT_INSTAGRAM || 'https://instagram.com'
   const xLink = import.meta.env.VITE_CONTACT_X || 'https://x.com'
   const website = import.meta.env.VITE_CONTACT_WEBSITE || 'https://agaar.netlify.app'
