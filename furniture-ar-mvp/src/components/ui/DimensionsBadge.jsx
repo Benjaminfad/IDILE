@@ -1,4 +1,14 @@
-function DimensionsBadge({ dimensions = {} }) {
+import { getDimensionNote } from '../../utils/productDisplay'
+
+function DimensionsBadge({ dimensions = {}, product = null }) {
+  if (product?.dimensionMode === 'custom') {
+    return (
+      <p className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm leading-relaxed text-slate-700">
+        {getDimensionNote(product)}
+      </p>
+    )
+  }
+
   const entries = [
     { label: 'H', value: dimensions.height ?? '-' },
     { label: 'W', value: dimensions.width ?? '-' },

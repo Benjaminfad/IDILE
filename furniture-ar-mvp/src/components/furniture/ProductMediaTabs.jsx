@@ -19,22 +19,24 @@ function ProductMediaTabs({ product, className = '' }) {
 
   return (
     <div className={`space-y-3 ${className}`}>
-      <div className="inline-flex rounded-xl border border-slate-200 bg-white p-1 shadow-sm">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            type="button"
-            onClick={() => setActiveTab(tab.id)}
-            className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
-              visibleActiveTab === tab.id
-                ? 'bg-slate-900 text-white shadow-sm'
-                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
+      {has3DDisplay ? (
+        <div className="inline-flex rounded-xl border border-slate-200 bg-white p-1 shadow-sm">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setActiveTab(tab.id)}
+              className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
+                visibleActiveTab === tab.id
+                  ? 'bg-slate-900 text-white shadow-sm'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      ) : null}
 
       {visibleActiveTab === '3d' && has3DDisplay ? (
         <ARViewButton

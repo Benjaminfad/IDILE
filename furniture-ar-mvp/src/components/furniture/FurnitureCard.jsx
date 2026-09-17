@@ -1,6 +1,11 @@
 ﻿import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { formatNaira } from '../../utils/formatters'
+import {
+  formatProductPrice,
+  getAvailabilityLabel,
+  getDimensionNote,
+  getMaterialNote,
+} from '../../utils/productDisplay'
 
 const FALLBACK_THUMBNAIL =
   'https://placehold.co/640x480/e2e8f0/334155?text=Furniture+Image'
@@ -47,6 +52,8 @@ function FurnitureCard({ product, productLink }) {
 
   const productPath = productLink || `/product/${productId}`
   const has3DDisplay = Boolean(product?.has3DDisplay)
+  const hasCustomDimensions = product?.dimensionMode === 'custom'
+  const hasCustomMaterials = product?.materialMode === 'custom'
 
   return (
     <article className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg">
@@ -82,7 +89,7 @@ function FurnitureCard({ product, productLink }) {
             {product?.name ?? 'Untitled Product'}
           </h3>
           <p className="text-lg font-bold text-emerald-700">
-            {formatNaira(product?.price ?? 0)}
+            {formatProductPrice(product)}
           </p>
         </div>
 
@@ -95,22 +102,47 @@ function FurnitureCard({ product, productLink }) {
           </span>
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">
-            Photos
-          </span>
-          {has3DDisplay ? (
+        {has3DDisplay ? (
+          <div className="flex flex-wrap gap-2">
             <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
               3D/AR
             </span>
+          </div>
+        ) : null}
+
+        <div className="flex flex-wrap gap-2">
+          <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">
+            {getAvailabilityLabel(product)}
+          </span>
+          {hasCustomDimensions ? (
+            <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">
+              Dimensions confirmed before production
+            </span>
+          ) : null}
+          {hasCustomMaterials ? (
+            <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">
+              Materials by specification
+            </span>
           ) : null}
         </div>
+
+        {hasCustomDimensions ? (
+          <p className="line-clamp-2 text-xs leading-relaxed text-slate-500">
+            {getDimensionNote(product)}
+          </p>
+        ) : null}
+
+        {hasCustomMaterials ? (
+          <p className="line-clamp-2 text-xs leading-relaxed text-slate-500">
+            {getMaterialNote(product)}
+          </p>
+        ) : null}
 
         <Link
           to={productPath}
           className="inline-flex w-full items-center justify-center rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800"
         >
-          {has3DDisplay ? 'View Photos + 3D' : 'View Product'}
+          View
         </Link>
       </div>
     </article>

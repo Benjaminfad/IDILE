@@ -1,9 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
-import { Canvas, useFrame } from '@react-three/fiber'
-import { Float, OrbitControls } from '@react-three/drei'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { fetchFeaturedProducts } from '../services/publicApi'
-import { formatNaira } from '../utils/formatters'
+import { formatProductPrice } from '../utils/productDisplay'
 import SellerContactCardModal from '../components/ui/SellerContactCardModal'
 
 const howItWorks = [
@@ -31,17 +29,20 @@ const featuredCategories = [
   {
     name: 'Living',
     description: 'Sofas, accent chairs, TV consoles, and coffee tables.',
-    gradient: 'from-emerald-500 to-teal-600',
+    image:
+      'https://images.pexels.com/photos/2343466/pexels-photo-2343466.jpeg?auto=compress&cs=tinysrgb&w=900',
   },
   {
     name: 'Dining',
     description: 'Dining sets, marble tops, and statement pieces.',
-    gradient: 'from-amber-500 to-orange-600',
+    image:
+      'https://images.pexels.com/photos/14598479/pexels-photo-14598479.jpeg?auto=compress&cs=tinysrgb&w=900',
   },
   {
     name: 'Office',
     description: 'Ergonomic chairs, desks, and workspace essentials.',
-    gradient: 'from-sky-500 to-blue-700',
+    image:
+      'https://images.pexels.com/photos/1957478/pexels-photo-1957478.jpeg?auto=compress&cs=tinysrgb&w=900',
   },
 ]
 
@@ -51,68 +52,26 @@ const presenceStats = [
   { label: 'WhatsApp inquiries', value: '< 1 min' },
 ]
 
-function FloatingFurnitureSet() {
-  const groupRef = useRef(null)
-
-  useFrame((_, delta) => {
-    if (!groupRef.current) return
-    groupRef.current.rotation.y += delta * 0.12
-  })
-
-  return (
-    <group ref={groupRef}>
-      <Float speed={2.5} rotationIntensity={0.35} floatIntensity={0.55}>
-        <mesh position={[-1.6, 0.35, -0.6]} castShadow>
-          <boxGeometry args={[1.25, 0.45, 0.85]} />
-          <meshStandardMaterial color="#14532d" metalness={0.1} roughness={0.65} />
-        </mesh>
-      </Float>
-
-      <Float speed={2.1} rotationIntensity={0.45} floatIntensity={0.45}>
-        <mesh position={[1.15, -0.05, 0.25]} castShadow>
-          <cylinderGeometry args={[0.5, 0.6, 0.08, 48]} />
-          <meshStandardMaterial color="#78350f" metalness={0.2} roughness={0.45} />
-        </mesh>
-      </Float>
-
-      <Float speed={2.8} rotationIntensity={0.25} floatIntensity={0.6}>
-        <mesh position={[0.3, 0.6, -1.1]} castShadow>
-          <boxGeometry args={[0.52, 0.9, 0.52]} />
-          <meshStandardMaterial color="#1d4ed8" metalness={0.25} roughness={0.5} />
-        </mesh>
-      </Float>
-    </group>
-  )
-}
-
-function Hero3DBackground() {
-  return (
-    <div className="absolute inset-0 -z-0 overflow-hidden rounded-3xl">
-      <Canvas camera={{ position: [0, 1.2, 4], fov: 42 }} shadows>
-        <color attach="background" args={['#dbeafe']} />
-        <fog attach="fog" args={['#dbeafe', 5, 11]} />
-
-        <ambientLight intensity={0.55} />
-        <directionalLight
-          intensity={1.1}
-          position={[3, 5, 3]}
-          castShadow
-          shadow-mapSize-width={1024}
-          shadow-mapSize-height={1024}
-        />
-
-        <FloatingFurnitureSet />
-
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.65, 0]} receiveShadow>
-          <planeGeometry args={[20, 20]} />
-          <meshStandardMaterial color="#cbd5e1" roughness={0.85} metalness={0.08} />
-        </mesh>
-
-        <OrbitControls enablePan={false} enableZoom={false} maxPolarAngle={1.7} minPolarAngle={1.1} />
-      </Canvas>
-    </div>
-  )
-}
+const heroSlides = [
+  {
+    image: 'https://unsplash.com/photos/RpJIm5Lojyw/download?force=true',
+    alt: 'Furniture maker shaping wood in a workshop',
+  },
+  {
+    image:
+      'https://images.pexels.com/photos/6827338/pexels-photo-6827338.jpeg?auto=compress&cs=tinysrgb&w=1800',
+    alt: 'Customers browsing wooden furniture in a showroom',
+  },
+  {
+    image:
+      'https://images.pexels.com/photos/276528/pexels-photo-276528.jpeg?auto=compress&cs=tinysrgb&w=1800',
+    alt: 'Warm furniture showroom with sofas and tables',
+  },
+  {
+    image: 'https://unsplash.com/photos/c0JoR_-2x3E/download?force=true',
+    alt: 'Furniture assembly work on a wooden panel',
+  },
+]
 
 function StepIcon({ type }) {
   if (type === 'search') {
@@ -163,38 +122,52 @@ function HomePage() {
 
   return (
     <div className="space-y-12">
-      <section className="relative isolate overflow-hidden rounded-3xl border border-slate-200 shadow-sm">
-        <Hero3DBackground />
-        <div className="relative z-10 grid gap-6 bg-gradient-to-r from-white/92 via-white/84 to-white/55 p-6 backdrop-blur-sm sm:p-10 lg:grid-cols-[1fr,280px]">
-          <div className="fade-rise">
-            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-700">
+      <section className="relative left-1/2 isolate w-screen -translate-x-1/2 overflow-hidden bg-slate-950 text-white shadow-sm">
+        <div className="absolute inset-0">
+          {heroSlides.map((slide, index) => (
+            <img
+              key={slide.image}
+              src={slide.image}
+              alt={slide.alt}
+              className="hero-slideshow-image"
+              style={{ animationDelay: `${index * 6}s` }}
+              loading={index === 0 ? 'eager' : 'lazy'}
+              decoding="async"
+            />
+          ))}
+          <div className="absolute inset-0 bg-gradient-to-r from-slate-950/95 via-slate-950/72 to-slate-950/35" />
+          <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-slate-950/80 to-transparent" />
+        </div>
+
+        <div className="relative z-10 mx-auto grid min-h-[520px] w-full max-w-6xl items-end gap-8 px-4 py-10 sm:min-h-[620px] sm:py-14 lg:grid-cols-[minmax(0,1fr),280px] lg:py-16">
+          <div className="fade-rise max-w-3xl pb-2">
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-200">
               Furniture Visualization Marketplace
             </p>
-            <h1 className="mt-3 max-w-3xl text-3xl font-extrabold leading-tight text-slate-900 sm:text-5xl">
-              Feel each furniture piece before buying.
+            <h1 className="mt-3 text-4xl font-extrabold leading-tight sm:text-6xl">
+              Software for furniture makers and confident buyers.
             </h1>
-            <p className="mt-4 max-w-2xl text-base text-slate-700 sm:text-lg">
-              Discover seller storefronts, inspect furniture photos, open 3D/AR where available, and chat instantly on WhatsApp.
-              Built for Nigerian buyers who want confidence before payment.
+            <p className="mt-4 max-w-2xl text-base text-slate-100 sm:text-lg">
+              IDILE helps makers present their catalog beautifully, while customers inspect real product photos, open 3D/AR where available, and move straight into WhatsApp when a piece feels right.
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <Link
                 to="/"
-                className="inline-flex rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+                className="inline-flex rounded-xl bg-white px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-slate-100"
               >
                 Explore Seller Stores
               </Link>
-              <span className="rounded-xl border border-slate-300 bg-white/80 px-4 py-3 text-sm font-semibold text-slate-700">
+              <span className="rounded-xl border border-white/25 bg-white/10 px-4 py-3 text-sm font-semibold text-white backdrop-blur">
                 Real listings from local sellers
               </span>
             </div>
           </div>
 
-          <div className="float-soft flex flex-col gap-3">
+          <div className="float-soft hidden flex-col gap-3 self-end lg:flex">
             {presenceStats.map((item) => (
-              <div key={item.label} className="presence-card p-4">
-                <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">{item.label}</p>
-                <p className="mt-1 text-2xl font-extrabold text-slate-900">{item.value}</p>
+              <div key={item.label} className="rounded-2xl border border-white/20 bg-white/12 p-4 shadow-sm backdrop-blur-md">
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-200">{item.label}</p>
+                <p className="mt-1 text-2xl font-extrabold text-white">{item.value}</p>
               </div>
             ))}
           </div>
@@ -227,8 +200,16 @@ function HomePage() {
         <h2 className="text-2xl font-bold text-slate-900">Featured categories</h2>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           {featuredCategories.map((category) => (
-            <article key={category.name} className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-              <div className={`h-2.5 bg-gradient-to-r ${category.gradient}`} />
+            <article key={category.name} className="group overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+              <div className="aspect-[4/3] overflow-hidden bg-slate-100">
+                <img
+                  src={category.image}
+                  alt={`${category.name} furniture`}
+                  className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </div>
               <div className="p-5">
                 <h3 className="text-xl font-semibold text-slate-900">
                   {category.name}
@@ -250,7 +231,7 @@ function HomePage() {
                 <h3 className="mt-2 text-lg font-semibold text-slate-900 group-hover:text-emerald-700">{product.name}</h3>
                 <p className="mt-1 text-sm text-slate-600">{product.seller}</p>
                 <div className="mt-3 flex items-end justify-between">
-                  <p className="text-lg font-bold text-emerald-700">{formatNaira(product.price)}</p>
+                  <p className="text-lg font-bold text-emerald-700">{formatProductPrice(product)}</p>
                   <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
                     {product.has3DDisplay ? 'Photos + 3D' : 'Photos'}
                   </span>

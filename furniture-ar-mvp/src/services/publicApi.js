@@ -38,15 +38,21 @@ async function request(path, options = {}) {
 export function mapApiProduct(product) {
   const vendor = product?.vendorId || {}
   const images = normalizeImages(product)
+  const availabilityType = product?.availabilityType || (product?.inStock === false ? 'made-to-order' : 'in-stock')
   return {
     id: product?._id || product?.id || '',
     name: product?.name || 'Unnamed Product',
     seller: vendor?.businessName || 'Unknown Seller',
     sellerPhone: vendor?.phone || '',
     category: product?.category || 'uncategorized',
+    priceMode: product?.priceMode || 'fixed',
     price: Number(product?.price || 0),
     dimensions: product?.dimensions || { height: '-', width: '-', depth: '-' },
+    dimensionMode: product?.dimensionMode || 'set',
+    dimensionNote: product?.dimensionNote || '',
+    materialMode: product?.materialMode || 'set',
     materials: toArray(product?.materials),
+    materialNote: product?.materialNote || '',
     colors: toArray(product?.colors),
     modelPath: product?.modelPath || '',
     modelAsset: product?.modelAsset || null,
@@ -54,7 +60,8 @@ export function mapApiProduct(product) {
     has3DDisplay: Boolean(product?.has3DDisplay),
     thumbnail: images[0] || '',
     images,
-    inStock: product?.inStock !== false,
+    availabilityType,
+    inStock: availabilityType === 'in-stock',
     location: vendor?.location || 'Nigeria',
     description: product?.description || '',
     createdAt: product?.createdAt || null,
@@ -64,15 +71,21 @@ export function mapApiProduct(product) {
 
 export function mapStorefrontProduct(product, seller = {}) {
   const images = normalizeImages(product)
+  const availabilityType = product?.availabilityType || (product?.inStock === false ? 'made-to-order' : 'in-stock')
   return {
     id: product?._id || product?.id || '',
     name: product?.name || 'Unnamed Product',
     seller: seller?.businessName || 'Unknown Seller',
     sellerPhone: seller?.phone || '',
     category: product?.category || 'uncategorized',
+    priceMode: product?.priceMode || 'fixed',
     price: Number(product?.price || 0),
     dimensions: product?.dimensions || { height: '-', width: '-', depth: '-' },
+    dimensionMode: product?.dimensionMode || 'set',
+    dimensionNote: product?.dimensionNote || '',
+    materialMode: product?.materialMode || 'set',
     materials: toArray(product?.materials),
+    materialNote: product?.materialNote || '',
     colors: toArray(product?.colors),
     modelPath: product?.modelPath || '',
     modelAsset: product?.modelAsset || null,
@@ -80,7 +93,8 @@ export function mapStorefrontProduct(product, seller = {}) {
     has3DDisplay: Boolean(product?.has3DDisplay),
     thumbnail: images[0] || '',
     images,
-    inStock: product?.inStock !== false,
+    availabilityType,
+    inStock: availabilityType === 'in-stock',
     location: seller?.location || 'Nigeria',
     description: product?.description || '',
     createdAt: product?.createdAt || null,
@@ -109,8 +123,10 @@ export async function fetchFeaturedProducts(limit = 10) {
   const featured = toArray(data).slice(0, limit).map((item) => ({
     id: item?.id || '',
     name: item?.name || 'Unnamed Product',
+    priceMode: item?.priceMode || 'fixed',
     price: Number(item?.price || 0),
     category: item?.category || 'uncategorized',
+    availabilityType: item?.availabilityType || (item?.inStock === false ? 'made-to-order' : 'in-stock'),
     thumbnail: item?.thumbnail || '',
     modelPath: item?.modelPath || '',
     modelAsset: item?.modelAsset || null,

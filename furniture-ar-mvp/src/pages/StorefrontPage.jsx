@@ -5,6 +5,15 @@ import Loader from '../components/ui/Loader'
 import { fetchStoreProducts, fetchStorefront } from '../services/publicApi'
 import useThemeMode from '../hooks/useThemeMode'
 
+function SearchIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
+      <circle cx="11" cy="11" r="7" />
+      <path d="m20 20-3.5-3.5" />
+    </svg>
+  )
+}
+
 function StorefrontPage() {
   const { slug = '' } = useParams()
   const [loading, setLoading] = useState(true)
@@ -111,24 +120,24 @@ function StorefrontPage() {
             {storefront.tagline ? <p className="mt-2 text-sm text-white/90">{storefront.tagline}</p> : null}
             {storefront.description ? <p className="mt-4 max-w-3xl text-sm text-white/90">{storefront.description}</p> : null}
 
-            <div className="mt-5 flex flex-wrap gap-2">
-              {seller?.location ? <span className="presence-chip">{seller.location}</span> : null}
-              <span className="presence-chip">{products.length} Product{products.length === 1 ? '' : 's'}</span>
-              {storefront.whatsappPhone ? <span className="presence-chip">WhatsApp Ready</span> : null}
-            </div>
           </div>
         </div>
       </div>
 
       <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
         <div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr,auto]">
-          <input
-            type="text"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search this store..."
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none ring-emerald-500 transition focus:ring-2"
-          />
+          <div className="relative">
+            <span className="pointer-events-none absolute left-3 top-1/2 inline-flex -translate-y-1/2 text-slate-400">
+              <SearchIcon />
+            </span>
+            <input
+              type="text"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Search this store..."
+              className="w-full rounded-lg border border-slate-300 py-2 pl-9 pr-3 text-sm outline-none ring-emerald-500 transition focus:ring-2"
+            />
+          </div>
           <div className="flex items-center gap-2 text-xs text-slate-600">
             <span className="rounded-full bg-slate-100 px-3 py-1.5 font-semibold">
               {filteredProducts.length} item{filteredProducts.length === 1 ? '' : 's'}
