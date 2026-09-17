@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import ProductDetailView from '../components/furniture/ProductDetailView'
 import Loader from '../components/ui/Loader'
 import { fetchProductById, trackProductView } from '../services/publicApi'
-import { formatNaira } from '../utils/formatters'
+import { formatProductPrice } from '../utils/productDisplay'
 
 function ProductPage() {
   const { productId } = useParams()
@@ -65,7 +65,7 @@ function ProductPage() {
     const shareUrl = window.location.href
     const shareData = {
       title: `${product.name} | FurnitureAR NG`,
-      text: `Check out ${product.name} listed at ${formatNaira(product.price)}.`,
+      text: `Check out ${product.name} listed at ${formatProductPrice(product)}.`,
       url: shareUrl,
     }
 

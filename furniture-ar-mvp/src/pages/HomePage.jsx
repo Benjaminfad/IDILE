@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { fetchFeaturedProducts } from '../services/publicApi'
-import { formatNaira } from '../utils/formatters'
+import { formatProductPrice } from '../utils/productDisplay'
 import SellerContactCardModal from '../components/ui/SellerContactCardModal'
 
 const howItWorks = [
@@ -231,7 +231,7 @@ function HomePage() {
                 <h3 className="mt-2 text-lg font-semibold text-slate-900 group-hover:text-emerald-700">{product.name}</h3>
                 <p className="mt-1 text-sm text-slate-600">{product.seller}</p>
                 <div className="mt-3 flex items-end justify-between">
-                  <p className="text-lg font-bold text-emerald-700">{formatNaira(product.price)}</p>
+                  <p className="text-lg font-bold text-emerald-700">{formatProductPrice(product)}</p>
                   <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
                     {product.has3DDisplay ? 'Photos + 3D' : 'Photos'}
                   </span>
