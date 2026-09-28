@@ -193,7 +193,7 @@ export default function SellerContactCardModal({ open, onClose }) {
               <div className="mt-5 space-y-2 text-sm">
                 <div className="flex items-center justify-center gap-3">
                   <a
-                    href={website}
+                    href="https://agaar.netlify.app/store/agaar-furnitures"
                     target="_blank"
                     rel="noreferrer"
                     aria-label="Website"
@@ -203,7 +203,7 @@ export default function SellerContactCardModal({ open, onClose }) {
                     <IconGlobe />
                   </a>
                   <a
-                    href={instagram}
+                    href="https://www.instagram.com/agaar_woods/"
                     target="_blank"
                     rel="noreferrer"
                     aria-label="Instagram"
