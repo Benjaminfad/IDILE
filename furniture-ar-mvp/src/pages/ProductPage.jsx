@@ -87,7 +87,6 @@ function ProductPage() {
     <ProductDetailView
       product={product}
       backTo="/"
-      headerTitle={product.seller}
       backLabel="Back"
       onShareProduct={handleShareProduct}
       shareFeedback={shareFeedback}

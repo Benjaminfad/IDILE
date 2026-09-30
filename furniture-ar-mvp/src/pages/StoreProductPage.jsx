@@ -63,7 +63,6 @@ function StoreProductPage() {
       seller={seller}
       storefront={storefront}
       backTo={`/store/${encodeURIComponent(slug)}`}
-      headerTitle={storefront?.displayName || seller?.businessName || 'Seller Store'}
       backLabel="Back"
     />
   )

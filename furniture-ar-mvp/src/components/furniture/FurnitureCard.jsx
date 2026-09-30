@@ -4,6 +4,7 @@ import {
   formatProductPrice,
   getAvailabilityLabel,
 } from '../../utils/productDisplay'
+import { getOptimizedImageUrl } from '../../utils/cloudinaryImage'
 
 const FALLBACK_THUMBNAIL =
   'https://placehold.co/640x480/e2e8f0/334155?text=Furniture+Image'
@@ -29,7 +30,7 @@ function FurnitureCard({ product, productLink }) {
     return /chair/i.test(`${name} ${category}`)
   }, [product?.category, product?.name])
 
-  const thumbnailSrc = useMemo(() => {
+  const thumbnailSrc = (() => {
     if (!product?.thumbnail || hasImageError) {
       if (isTableProduct) {
         return TABLE_FALLBACK_THUMBNAIL
@@ -39,8 +40,8 @@ function FurnitureCard({ product, productLink }) {
       }
       return FALLBACK_THUMBNAIL
     }
-    return product.thumbnail
-  }, [product?.thumbnail, hasImageError, isTableProduct, isChairProduct])
+    return getOptimizedImageUrl(product.thumbnail, { width: 800, height: 600, crop: 'fill' })
+  })()
   const isUsingFallback = !product?.thumbnail || hasImageError
   const fallbackImageScale = useMemo(() => {
     if (isTableProduct) return TABLE_FALLBACK_IMAGE_SCALE
