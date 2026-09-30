@@ -1,16 +1,19 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import ProductMediaTabs from './ProductMediaTabs'
-import WhatsAppButton from './WhatsAppButton'
+import RequestQuoteButton, { CloseIcon, InstagramIcon, WhatsAppIcon } from './RequestQuoteButton'
 import DimensionsBadge from '../ui/DimensionsBadge'
-import { generateCustomQuoteWhatsAppLink } from '../../hooks/useWhatsAppShare'
+import {
+  generateCustomQuoteMessage,
+  generateCustomQuoteWhatsAppLink,
+  generateInstagramDmLink,
+} from '../../hooks/useWhatsAppShare'
 import {
   formatProductPrice,
   getAvailabilityLabel,
   getMaterialNote,
+  isQuoteProduct,
 } from '../../utils/productDisplay'
-
-const MAX_CUSTOM_REFERENCE_SIZE = 10 * 1024 * 1024
 
 function BackIcon() {
   return (
@@ -27,108 +30,112 @@ function CustomizationModal({
   product,
   sellerName,
   sellerPhone,
+  instagramUrl,
 }) {
+  const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
-  const [files, setFiles] = useState([])
   const [error, setError] = useState('')
   const hasSellerPhone = Boolean(sellerPhone)
+  const instagramDmUrl = generateInstagramDmLink(instagramUrl)
+  const hasContactChannel = hasSellerPhone || Boolean(instagramDmUrl)
 
   if (!open) return null
 
-  const handleFileChange = (event) => {
-    const selectedFiles = Array.from(event.target.files || [])
-    const totalSize = selectedFiles.reduce((sum, file) => sum + file.size, 0)
-
-    if (totalSize > MAX_CUSTOM_REFERENCE_SIZE) {
-      setFiles([])
-      setError('Design reference uploads are limited to 10 MB total.')
-      event.target.value = ''
-      return
-    }
-
-    setFiles(selectedFiles)
-    setError('')
-  }
-
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event, channel) => {
     event.preventDefault()
-    if (!hasSellerPhone) {
-      setError('Seller contact is unavailable for this product.')
+    if (!title.trim() || !description.trim()) {
+      setError('Add a title and description for your request.')
       return
     }
 
-    const href = generateCustomQuoteWhatsAppLink({
-      product: {
-        ...product,
-        seller: sellerName ?? product?.seller ?? 'Seller',
-        name: product?.name ?? 'this product',
-      },
-      sellerPhone,
-      description,
-      files,
-    })
+    const normalizedProduct = {
+      ...product,
+      seller: sellerName ?? product?.seller ?? 'Seller',
+      name: product?.name ?? 'this product',
+    }
 
-    window.open(href, '_blank', 'noopener,noreferrer')
-    onClose()
+    if (channel === 'whatsapp' && hasSellerPhone) {
+      const href = generateCustomQuoteWhatsAppLink({
+        product: normalizedProduct,
+        sellerPhone,
+        title,
+        description,
+      })
+      window.open(href, '_blank', 'noopener,noreferrer')
+      onClose()
+      return
+    }
+
+    if (channel === 'instagram' && instagramDmUrl) {
+      const message = generateCustomQuoteMessage({
+        product: normalizedProduct,
+        title,
+        description,
+      })
+
+      window.open(instagramDmUrl, '_blank', 'noopener,noreferrer')
+      try {
+        await navigator.clipboard.writeText(message)
+      } catch {
+        setError('Instagram opened, but the notes could not be copied. Please copy them manually.')
+        return
+      }
+      onClose()
+      return
+    }
+
+    setError('That contact channel is unavailable for this seller.')
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 px-4 py-6">
-      <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-5 shadow-xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 px-4 py-6" role="dialog" aria-modal="true" aria-labelledby="custom-request-title">
+      <div className="max-h-[calc(100dvh-3rem)] w-full max-w-lg overflow-y-auto rounded-2xl border border-slate-200 bg-white p-5 shadow-xl">
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">
               Customize
             </p>
-            <h2 className="mt-1 text-xl font-bold text-slate-900">
+            <h2 id="custom-request-title" className="mt-1 text-xl font-bold text-slate-900">
               Share your preferred design
             </h2>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
+            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
             aria-label="Close customization modal"
           >
-            X
+            <CloseIcon />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="mt-5 space-y-4">
+        <form className="mt-5 space-y-4" onSubmit={(event) => event.preventDefault()}>
           <label className="block">
-            <span className="text-sm font-semibold text-slate-700">
-              Reference pictures
-            </span>
+            <span className="text-sm font-semibold text-slate-700">Title</span>
             <input
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={handleFileChange}
-              className="mt-2 block w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-700 file:mr-3 file:rounded-lg file:border-0 file:bg-emerald-50 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-emerald-700"
+              type="text"
+              value={title}
+              onChange={(event) => setTitle(event.target.value)}
+              placeholder="e.g. Custom dining table for six"
+              className="mt-2 block w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+              required
             />
           </label>
 
-          {files.length > 0 ? (
-            <div className="rounded-xl bg-slate-50 px-3 py-2 text-xs text-slate-600">
-              {files.length} image{files.length === 1 ? '' : 's'} selected: {files.map((file) => file.name).join(', ')}
-            </div>
-          ) : null}
-
           <label className="block">
-            <span className="text-sm font-semibold text-slate-700">
-              Description
-            </span>
+            <span className="text-sm font-semibold text-slate-700">Description</span>
             <textarea
               value={description}
               onChange={(event) => setDescription(event.target.value)}
               rows={4}
               placeholder="Describe your space, preferred finish, measurements, color, or any special request."
               className="mt-2 block w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+              required
             />
           </label>
 
           <p className="text-xs leading-relaxed text-slate-500">
-            WhatsApp will open with your notes. Attach the selected images in the chat if the seller requests them.
+            Your notes will be prepared for your preferred contact channel. You can share specific design images in the conversation once you connect with the seller.
           </p>
 
           {error ? (
@@ -137,26 +144,30 @@ function CustomizationModal({
             </p>
           ) : null}
 
-          <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+          <div className="grid gap-3 sm:grid-cols-2">
             <button
               type="button"
-              onClick={onClose}
-              className="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+              onClick={(event) => handleSubmit(event, 'whatsapp')}
+              disabled={!hasSellerPhone}
+              className={`inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition ${hasSellerPhone ? 'bg-emerald-600 text-white hover:bg-emerald-700' : 'cursor-not-allowed bg-slate-200 text-slate-400'}`}
             >
-              Cancel
+              <WhatsAppIcon />
+              WhatsApp
             </button>
             <button
-              type="submit"
-              disabled={!hasSellerPhone}
-              className={`inline-flex items-center justify-center rounded-xl px-4 py-3 text-sm font-semibold text-white transition ${
-                hasSellerPhone
-                  ? 'bg-emerald-600 hover:bg-emerald-700'
-                  : 'cursor-not-allowed bg-slate-400'
-              }`}
+              type="button"
+              onClick={(event) => handleSubmit(event, 'instagram')}
+              disabled={!instagramDmUrl}
+              className={`inline-flex items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-semibold transition ${instagramDmUrl ? 'border-fuchsia-200 bg-fuchsia-50 text-fuchsia-700 hover:bg-fuchsia-100' : 'cursor-not-allowed border-slate-200 bg-slate-50 text-slate-400'}`}
             >
-              Send on WhatsApp
+              <InstagramIcon />
+              Instagram
             </button>
           </div>
+
+          {!hasContactChannel ? (
+            <p className="text-center text-xs text-slate-500">Seller contact is unavailable for this product.</p>
+          ) : null}
         </form>
       </div>
     </div>
@@ -168,37 +179,23 @@ function ProductDetailView({
   seller = null,
   storefront = null,
   backTo = '/',
-  headerLabel = 'Now Viewing',
-  headerTitle = '',
   backLabel = 'Back',
   onShareProduct,
   shareFeedback = '',
 }) {
   const [customModalOpen, setCustomModalOpen] = useState(false)
   const sellerName = seller?.businessName || product.seller
-  const sellerPhone = seller?.phone || product.sellerPhone
+  const sellerPhone = storefront?.whatsappPhone || seller?.phone || product.sellerPhone
+  const instagramUrl = storefront?.instagramUrl || seller?.instagramUrl || ''
   const sellerLocation = seller?.location || product.location
-  const gradientStart = storefront?.primaryColor || '#0f766e'
-  const gradientEnd = storefront?.accentColor || '#0f172a'
   const availabilityLabel = getAvailabilityLabel(product)
   const isMadeToOrder = product?.availabilityType === 'made-to-order'
   const materials = Array.isArray(product?.materials) ? product.materials : []
   const hasCustomMaterials = product?.materialMode === 'custom'
+  const showPrice = !isQuoteProduct(product)
 
   return (
     <section className="space-y-4">
-      <div
-        className="overflow-hidden rounded-2xl border border-slate-200 px-4 py-4 text-white shadow-sm sm:px-5"
-        style={{
-          background: `linear-gradient(120deg, ${gradientStart} 0%, ${gradientEnd} 100%)`,
-        }}
-      >
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/80">{headerLabel}</p>
-        <p className="mt-1 text-base font-bold">
-          {headerTitle || storefront?.displayName || sellerName || 'Product Details'}
-        </p>
-      </div>
-
       <Link
         to={backTo}
         className="inline-flex w-fit items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-100"
@@ -217,7 +214,7 @@ function ProductDetailView({
             <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Seller</p>
             <h1 className="mt-1 text-2xl font-extrabold leading-tight text-slate-900">{product.name}</h1>
             <p className="mt-1 text-sm font-medium text-slate-700">{sellerName}</p>
-            <p className="mt-2 text-2xl font-bold text-emerald-700">{formatProductPrice(product)}</p>
+            {showPrice ? <p className="mt-2 text-2xl font-bold text-emerald-700">{formatProductPrice(product)}</p> : null}
             <div className="mt-3 flex flex-wrap gap-2">
               <span className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
                 {sellerLocation}
@@ -266,12 +263,12 @@ function ProductDetailView({
 
           <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
             <div className="grid grid-cols-1 gap-3">
-              <WhatsAppButton
+              <RequestQuoteButton
                 product={product}
                 sellerName={sellerName}
                 sellerPhone={sellerPhone}
+                instagramUrl={instagramUrl}
                 className="w-full"
-                label="Inquire on WhatsApp"
               />
               <button
                 type="button"
@@ -301,6 +298,7 @@ function ProductDetailView({
         product={product}
         sellerName={sellerName}
         sellerPhone={sellerPhone}
+        instagramUrl={instagramUrl}
       />
     </section>
   )

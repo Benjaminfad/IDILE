@@ -20,22 +20,47 @@ export const generateWhatsAppLink = (product, sellerPhone) => {
 export const generateCustomQuoteWhatsAppLink = ({
   product,
   sellerPhone,
+  title,
   description,
-  files = [],
 }) => {
-  const safeProduct = product ?? {}
   const safePhone = String(sellerPhone ?? '').replace(/\D/g, '')
-  const fileList = files.length > 0
-    ? `\n\nReference files selected: ${files.map((file) => file.name).join(', ')}`
-    : ''
-  const details = String(description || '').trim()
-  const descriptionText = details ? `\n\nDesign notes: ${details}` : ''
-
-  const message = encodeURIComponent(
-    `Hello ${safeProduct.seller}, I'm interested in customizing the ${safeProduct.name} I viewed on your app. I'd like to share my preferred design references and specifications.${descriptionText}${fileList}\n\nPlease let me know what information you need from me to proceed.`,
-  )
+  const message = encodeURIComponent(generateCustomQuoteMessage({
+    product,
+    title,
+    description,
+  }))
 
   return `https://wa.me/${safePhone}?text=${message}`
+}
+
+export const generateCustomQuoteMessage = ({ product, title, description }) => {
+  const safeProduct = product ?? {}
+  const requestTitle = String(title || '').trim()
+  const details = String(description || '').trim()
+
+  return `Hello ${safeProduct.seller}, I'd like to request a custom quote for ${safeProduct.name}.\n\nRequest: ${requestTitle}\n\nDetails: ${details}\n\nPlease let me know what information you need from me to proceed.`
+}
+
+export const generateInstagramDmLink = (profileValue = '') => {
+  const value = String(profileValue).trim()
+  if (!value) return ''
+
+  let username = ''
+  try {
+    const parsed = new URL(value.startsWith('http') ? value : `https://${value}`)
+    const hostname = parsed.hostname.replace(/^www\./, '').toLowerCase()
+    if (hostname === 'instagram.com') {
+      username = parsed.pathname.split('/').filter(Boolean)[0] || ''
+    } else if (hostname === 'ig.me') {
+      const pathParts = parsed.pathname.split('/').filter(Boolean)
+      username = pathParts[0] === 'm' ? pathParts[1] || '' : ''
+    }
+  } catch {
+    username = value.replace(/^@/, '')
+  }
+
+  username = username.replace(/^@/, '').split(/[/?#]/)[0]
+  return username ? `https://ig.me/m/${encodeURIComponent(username)}` : ''
 }
 
 export default generateWhatsAppLink

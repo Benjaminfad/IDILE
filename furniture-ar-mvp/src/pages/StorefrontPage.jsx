@@ -2,8 +2,10 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import FurnitureCard from '../components/furniture/FurnitureCard'
 import Loader from '../components/ui/Loader'
+import Pagination from '../components/ui/Pagination'
 import { fetchStoreProducts, fetchStorefront } from '../services/publicApi'
 import useThemeMode from '../hooks/useThemeMode'
+import { getOptimizedImageUrl } from '../utils/cloudinaryImage'
 
 function SearchIcon() {
   return (
@@ -39,9 +41,12 @@ function StorefrontPage() {
   const { slug = '' } = useParams()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [productsError, setProductsError] = useState('')
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
-  const [searching, setSearching] = useState(false)
+  const [productsLoading, setProductsLoading] = useState(true)
+  const [page, setPage] = useState(1)
+  const [pagination, setPagination] = useState({ page: 1, totalPages: 1, totalItems: 0 })
   const [storefront, setStorefront] = useState(null)
   const [seller, setSeller] = useState(null)
   const [products, setProducts] = useState([])
@@ -53,14 +58,10 @@ function StorefrontPage() {
       try {
         setLoading(true)
         setError('')
-        const [storeInfo, storeProducts] = await Promise.all([
-          fetchStorefront(slug),
-          fetchStoreProducts(slug, { page: 1, limit: 50 }),
-        ])
+        const storeInfo = await fetchStorefront(slug)
         if (!active) return
         setStorefront(storeInfo.storefront)
-        setSeller(storeInfo.seller || storeProducts.seller || null)
-        setProducts(storeProducts.items || [])
+        setSeller(storeInfo.seller || null)
       } catch (requestError) {
         if (!active) return
         setError(requestError.message || 'Could not load storefront')
@@ -75,29 +76,65 @@ function StorefrontPage() {
   }, [slug])
 
   useEffect(() => {
+    let active = true
+    const run = async () => {
+      try {
+        setProductsLoading(true)
+        setProductsError('')
+        const storeProducts = await fetchStoreProducts(slug, {
+          page,
+          limit: 12,
+          search: debouncedSearch,
+        })
+        if (!active) return
+        setSeller((current) => current || storeProducts.seller || null)
+        setProducts(storeProducts.items || [])
+        setPagination(storeProducts.pagination || { page: 1, totalPages: 1, totalItems: 0 })
+      } catch (requestError) {
+        if (!active) return
+        setProductsError(requestError.message || 'Could not load products')
+        setProducts([])
+      } finally {
+        if (active) setProductsLoading(false)
+      }
+    }
+
+    run()
+    return () => {
+      active = false
+    }
+  }, [slug, debouncedSearch, page])
+
+  useEffect(() => {
     const nextSearch = search.trim()
-    setSearching(true)
     const timer = window.setTimeout(() => {
       setDebouncedSearch(nextSearch)
-      setSearching(false)
+      setPage(1)
     }, 260)
 
     return () => window.clearTimeout(timer)
   }, [search])
 
-  const filteredProducts = useMemo(() => {
-    const query = debouncedSearch.toLowerCase()
-    if (!query) return products
-    return products.filter((item) =>
-      `${item.name} ${item.category} ${item.description}`.toLowerCase().includes(query),
-    )
-  }, [products, debouncedSearch])
+  const searching = search.trim() !== debouncedSearch || productsLoading
+
+  const handlePageChange = (nextPage) => {
+    setPage(nextPage)
+    window.requestAnimationFrame(() => {
+      document.getElementById('store-products')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    })
+  }
 
   const brandStyle = useMemo(() => {
     const primary = storefront?.primaryColor || '#0f766e'
     const accent = storefront?.accentColor || '#0f172a'
+    const heroImage = getOptimizedImageUrl(storefront?.heroImageUrl, { width: 1800, height: 720, crop: 'fill' })
     return {
-      background: `linear-gradient(135deg, ${primary} 0%, ${accent} 100%)`,
+      backgroundColor: primary,
+      backgroundImage: heroImage
+        ? `linear-gradient(135deg, ${primary}e6 0%, ${accent}d9 100%), url("${heroImage}")`
+        : `linear-gradient(135deg, ${primary} 0%, ${accent} 100%)`,
+      backgroundPosition: 'center',
+      backgroundSize: 'cover',
     }
   }, [storefront])
 
@@ -123,24 +160,19 @@ function StorefrontPage() {
   return (
     <section className="space-y-6">
       <div className="overflow-hidden rounded-2xl border border-slate-200 shadow-sm">
-        <div className="relative p-6 text-white sm:p-8" style={brandStyle}>
+        <div className="relative min-h-52 p-6 text-white sm:min-h-60 sm:p-8" style={brandStyle}>
           <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-white/10 blur-xl" />
           <div className="absolute -bottom-10 left-16 h-28 w-28 rounded-full bg-black/10 blur-xl" />
 
           <div className="relative">
-            <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/80">Seller Storefront</p>
-              <img
-                src="/branding/idile-logo-entity-seat-light.svg"
-                alt="IDILE logo"
-                className="h-10 w-10 rounded-md bg-white/10 p-1 object-contain"
-              />
             </div>
             <div className="mt-3 flex flex-wrap items-center gap-3">
               <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border border-white/30 bg-white/10">
                 {storefront.logoUrl || seller?.avatar ? (
                   <img
-                    src={storefront.logoUrl || seller?.avatar}
+                    src={getOptimizedImageUrl(storefront.logoUrl || seller?.avatar, { width: 160, height: 160, crop: 'fill' })}
                     alt={storefront.displayName || seller?.businessName || slug}
                     className="h-full w-full object-cover"
                   />
@@ -174,7 +206,7 @@ function StorefrontPage() {
           </div>
           <div className="flex flex-wrap items-center justify-center gap-2 text-xs text-slate-600">
             <span className="rounded-full bg-slate-100 px-3 py-1.5 font-semibold">
-              {searching ? 'Searching...' : `${filteredProducts.length} item${filteredProducts.length === 1 ? '' : 's'}`}
+              {searching ? 'Searching...' : `${pagination.totalItems || 0} item${pagination.totalItems === 1 ? '' : 's'}`}
             </span>
             {seller?.location ? (
               <span className="rounded-full bg-slate-100 px-3 py-1.5 font-semibold">{seller.location}</span>
@@ -183,23 +215,37 @@ function StorefrontPage() {
         </div>
       </div>
 
-      {searching ? (
-        <SearchResultsSkeleton />
-      ) : filteredProducts.length === 0 ? (
-        <div className="rounded-xl border border-slate-200 bg-white p-6 text-center text-sm text-slate-600">
-          No products found in this storefront yet.
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
-          {filteredProducts.map((product) => (
-            <FurnitureCard
-              key={product.id}
-              product={product}
-              productLink={`/store/${encodeURIComponent(slug)}/product/${product.id}`}
+      <div id="store-products" className="scroll-mt-24">
+        {searching ? (
+          <SearchResultsSkeleton />
+        ) : productsError ? (
+          <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-center text-sm text-red-700">
+            {productsError}
+          </div>
+        ) : products.length === 0 ? (
+          <div className="rounded-xl border border-slate-200 bg-white p-6 text-center text-sm text-slate-600">
+            {debouncedSearch ? 'No products match your search.' : 'No products found in this storefront yet.'}
+          </div>
+        ) : (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
+              {products.map((product) => (
+                <FurnitureCard
+                  key={product.id}
+                  product={product}
+                  productLink={`/store/${encodeURIComponent(slug)}/product/${product.id}`}
+                />
+              ))}
+            </div>
+            <Pagination
+              page={pagination.page || page}
+              totalPages={pagination.totalPages || 1}
+              onPageChange={handlePageChange}
+              disabled={productsLoading}
             />
-          ))}
-        </div>
-      )}
+          </div>
+        )}
+      </div>
     </section>
   )
 }
